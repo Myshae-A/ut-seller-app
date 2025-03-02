@@ -3,6 +3,8 @@ import dotenv from 'dotenv';
 import { connectDB } from './config/db.js';
 import path from 'path';
 
+import db from './firebase-admin.js';
+
 import productRoutes from './routes/product.route.js';
 
 dotenv.config();

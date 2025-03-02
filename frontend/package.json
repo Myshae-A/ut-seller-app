@@ -16,6 +16,7 @@
     "@emotion/styled": "^11.14.0",
     "axios": "^1.8.1",
     "bootstrap": "^5.3.3",
+    "firebase": "^11.4.0",
     "framer-motion": "^12.4.7",
     "mern-crash-course": "file:..",
     "next-themes": "^0.4.4",

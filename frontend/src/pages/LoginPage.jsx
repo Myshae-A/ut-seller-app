@@ -1,6 +1,37 @@
-import { Button, Container, FormControl, HStack, VStack, Text, Input, FormLabel, FormHelperText, Box, useColorModeValue  } from '@chakra-ui/react';
+import { useToast, Button, Container, FormControl, HStack, VStack, Text, Input, FormLabel, FormHelperText, Box, useColorModeValue  } from '@chakra-ui/react';
+import React, { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
+import { auth } from '../firebase-client';
+import { signInWithEmailAndPassword } from 'firebase/auth';
 
 const LoginPage = () => {
+
+    const navigate = useNavigate();
+    const toast = useToast();
+    const [loginEmail, setLoginEmail] = useState('');
+    const [loginPassword, setLoginPassword] = useState('');
+
+    const handleLogin = async (e) => {
+        e.preventDefault();
+        // TODO: Add Firebase login with email/password functionality here.
+        try {
+            const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
+            setLoginEmail('')
+            setLoginPassword('')
+            navigate('/home');
+            console.log('LOGIN SUCCESS'+userCredential.user)
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: 'Username or password is invalid.',
+                status: "error",
+                duration: 3000, // 3 seconds
+                isClosable: true,
+              });
+          console.error("LOGIN ERROR: ", error.message)
+        }
+      };
+
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">
             <Box w={"full"} bg={useColorModeValue("white", "gray.800")}
@@ -18,18 +49,38 @@ const LoginPage = () => {
                 <VStack spacing={4}>
                     <FormControl isRequired>
                         <FormLabel>Email address</FormLabel>
-                        <Input placeholder='Enter Email Address' type='email' />
+                        <Input
+                            placeholder='Enter Email Address'
+                            type='email'
+                            onChange={(e) => setLoginEmail(e.target.value)}/>
                         <FormHelperText>Must end with @utexas.edu domain.</FormHelperText>
                     </FormControl>
 
                     <FormControl isRequired>
                         <FormLabel>Password</FormLabel>
-                        <Input placeholder='Enter Password' type='email' />
+                        <Input
+                            placeholder='Enter Password'
+                            type='password'
+                            onChange={(e) => setLoginPassword(e.target.value)}/>
                         <FormHelperText>Must be at least 6 characters.</FormHelperText>
                     </FormControl>
 
-                    <Button colorScheme='blue' textAlign={"center"} w="full">Login</Button>
+                    <Button
+                        colorScheme='blue'
+                        textAlign={"center"}
+                        w="full"
+                        onClick={handleLogin}
+                    >
+                        Login
+                    </Button>
                     
+                    <Text
+                        as='u'
+                        cursor='pointer'
+                        onClick={() => navigate('/signup')}
+                    >
+                        No account? Register here!
+                    </Text>
                 </VStack>
             </Box>
         </Container>
