@@ -11,7 +11,7 @@ import { auth } from '../firebase-client';
 // import { initializeApp } from "firebase/app";
 // import { firebaseConfig } from "../firebase-client";
 import { doc, setDoc, getDoc } from "firebase/firestore"; // Firestore imports
-import { db } from "../firebase-client";
+import db from "../firebase-client";
 
 // const app = initializeApp(firebaseConfig);
 // const auth = getAuth(app);
