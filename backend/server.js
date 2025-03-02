@@ -1,6 +1,5 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import path from 'path';
 
 // import db from './config/firebase-admin.js';
 import bodyParser from 'body-parser';
@@ -8,11 +7,10 @@ import cors from 'cors';
 
 dotenv.config();
 const app = express();
-app.use(cors());
 app.use(bodyParser.json()); // must keep this...
 
 app.use(cors({
-    origin: 'https://ut-seller-app.vercel.app'
+    origin: ['http://localhost:5173', 'https://ut-seller-app.vercel.app']
 }));
 
 // const __dirname = path.resolve();
