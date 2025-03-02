@@ -1,9 +1,8 @@
 import express from 'express';
 import dotenv from 'dotenv';
-import { connectDB } from './config/db.js';
 import path from 'path';
 
-import db from './config/firebase-admin.js';
+// import db from './config/firebase-admin.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
@@ -23,11 +22,16 @@ app.use(express.json()); // allows us to accept JSON data in the req.body
 // // Using Postman to test without having a frontend!
 // app.use("/api/users", productRoutes);
 
+app.get('/', (req, res) => {
+  res.json({ message: 'Hello World!' });
+}) 
+
 // GET: Endpoint to retrieve all tasks
 app.get("/api/users/:userId/listings", async (req, res) => {
     try {
       const { userId } = req.params; // don't forget this part when trying to get userId
-  
+      console.log("Fetching listings for user:", userId); 
+
       // Fetching all documents from the "tasks" collection in Firestore
       const snapshot = await db.collection("users").doc(userId).collection("listings").get();
       
@@ -52,6 +56,6 @@ app.get("/api/users/:userId/listings", async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    connectDB();
-    console.log('Server started at http://localhost:' + PORT);
+    // connectDB();
+    console.log('Server started at https://ut-seller-app.vercel.app:' + PORT);
 });
