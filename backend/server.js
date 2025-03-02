@@ -7,12 +7,10 @@ import db from './config/firebase-admin.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 
-import productRoutes from './routes/product.route.js';
-
 dotenv.config();
-
 const app = express();
-
+app.use(cors());
+app.use(bodyParser.json()); // must keep this...
 
 app.use(cors({
     origin: 'https://ut-seller-app.vercel.app'
@@ -50,50 +48,6 @@ app.get("/api/users/:userId/listings", async (req, res) => {
       res.status(500).send(error.message+" number 2");
     }
   });
-  
-  // CREATE
-  // POST: Endpoint to add a new task
-//   app.post("/users/:userId/tasks", async (req, res) => {
-//     const newTask = req.body;
-//     try {
-//       const { userId } = req.params;
-//       // Adding the new task to the "tasks" collection in Firestore
-//       const docRef = await db.collection("users").doc(userId).collection("tasks").add(newTask);
-//       const taskData = { id: docRef.id, ...newTask }; // Ensure task data includes the name
-//       res.status(201).send(taskData);  // Send the complete task back
-//     } catch (error) {
-//       // Sending an error response in case of an exception
-//       res.status(500).send(error.message);
-//     }
-//   });
-  
-//   // DELETE: Endpoint to remove a task
-//   app.delete('/users/:userId/tasks/:taskId', async (req, res) => {
-//     const taskId = req.params.taskId;
-//     const { userId } = req.params;
-//     if(taskId === undefined) {
-//       res.status(404).send('Task not found');
-//       return;
-//     }
-//     const taskRef = db.collection("users").doc(userId).collection("tasks").doc(taskId);
-//     // Delete the document with the given taskId
-//     await taskRef.delete();
-//     res.status(200).send(taskRef);
-//     // res.status(200).send(`taskId: ${taskId} is deleted!!!`);
-//   });
-
-// // Using Postman to test without having a frontend!
-// app.use("/api/products", productRoutes);
-
-// // this is for production deployment (hosting? im not too sure)
-// if (process.env.NODE_ENV === 'production') {
-//     // dist folder created from running npm run build in frontend
-//     app.use(express.static(path.join(__dirname, '/frontend/dist')));
-
-//     app.get("*", (req, res) => {
-//         res.sendFile(path.resolve(__dirname, "frontend", "dist", "index.html"));
-//     });
-// }
 
 const PORT = process.env.PORT || 5000;
 
