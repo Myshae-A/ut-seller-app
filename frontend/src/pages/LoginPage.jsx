@@ -1,8 +1,9 @@
 import { useToast, Button, Container, FormControl, HStack, VStack, Text, Input, FormLabel, FormHelperText, Box, useColorModeValue  } from '@chakra-ui/react';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { auth } from '../firebase-client';
-import { signInWithEmailAndPassword } from 'firebase/auth';
+// import { auth } from '../firebase-client';
+// import { signInWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '../contexts/AuthContext';
 
 const LoginPage = () => {
 
@@ -11,24 +12,23 @@ const LoginPage = () => {
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
 
+    const { login } = useAuth();
+
     const handleLogin = async (e) => {
         e.preventDefault();
         // TODO: Add Firebase login with email/password functionality here.
-        try {
-            const userCredential = await signInWithEmailAndPassword(auth, loginEmail, loginPassword)
-            setLoginEmail('')
-            setLoginPassword('')
-            navigate('/home');
-            console.log('LOGIN SUCCESS'+userCredential.user)
-        } catch (error) {
+        const { success, message } = await login(loginEmail, loginPassword);
+        if (!success) {
             toast({
                 title: "Error",
-                description: 'Username or password is invalid.',
+                description: message,
                 status: "error",
-                duration: 3000, // 3 seconds
+                duration: 3000,
                 isClosable: true,
-              });
-          console.error("LOGIN ERROR: ", error.message)
+            });
+        } else {
+            setLoginEmail('');
+            setLoginPassword('');
         }
       };
 

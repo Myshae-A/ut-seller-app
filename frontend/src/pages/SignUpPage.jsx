@@ -1,13 +1,17 @@
 import React, { useState } from 'react';
 import { Button, Container, FormControl, useToast, VStack, Text, Input, FormLabel, FormHelperText, Box, useColorModeValue } from '@chakra-ui/react';
-import { auth } from '../firebase-client';
+// import { auth } from '../firebase-client';
 import { useNavigate } from 'react-router-dom';
-import { createUserWithEmailAndPassword } from 'firebase/auth';
+// import { createUserWithEmailAndPassword } from 'firebase/auth';
+import { useAuth } from '../contexts/AuthContext';
+
+// import { getFirestore, doc, setDoc } from "firebase/firestore"; // Import Firestore functions
+// const db = getFirestore();
 
 const SignUpPage = () => {
 
     const navigate = useNavigate();
-
+    const { register } = useAuth();
     const [registerEmail, setRegisterEmail] = useState('');
     const [registerPassword, setRegisterPassword] = useState('');
     const toast = useToast();
@@ -15,24 +19,26 @@ const SignUpPage = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         // TODO: Add Firebase signup with email/password functionality here.
-        try {
-            if (!registerEmail.endsWith('@utexas.edu')) {
-                toast({
-                    title: "Error",
-                    description: 'Please enter a valid UTexas email address.',
-                    status: "error",
-                    duration: 3000, // 3 seconds
-                    isClosable: true,
-                  });
-            } else {
-                const userCredential = await createUserWithEmailAndPassword(auth, registerEmail, registerPassword)
-                setRegisterEmail('')
-                setRegisterPassword('')
-                navigate('/home');
-                console.log('ACCOUNT CREATED: '+userCredential.user.email)
-            }
-        } catch (error) {
-          console.error("SIGNUP ERROR: ", error.message)
+        const { success, message } = await register(registerEmail, registerPassword);
+        
+        if (success) {
+            setRegisterEmail('');
+            setRegisterPassword('');
+            toast({
+                title: "Success",
+                description: message,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } else {
+            toast({
+                title: "Error",
+                description: message,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
         }
     };
 

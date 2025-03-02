@@ -1,6 +1,8 @@
 import { VStack, Container, Heading, Box, useColorModeValue, Input, Button, useToast } from "@chakra-ui/react";
 import { useState } from "react";
 import { useProductStore } from "../store/product";
+// import { useAuth } from "../contexts/AuthContext";
+import { Navigate } from "react-router-dom";
 
 const CreatePage = () => {
   const [newProduct, setNewProduct] = useState({
@@ -10,6 +12,12 @@ const CreatePage = () => {
   });
   const toast = useToast();
   const { createProduct } = useProductStore();
+  // const { currentUser } = useAuth();
+
+  // Redirect to login if not authenticated
+  // if (!currentUser) {
+  //   return <Navigate to="/login" replace />;
+  // } // causes error for now
 
   const handleAddProduct = async() => {
     const {success, message} = await createProduct(newProduct);
