@@ -5,9 +5,16 @@ import { fileURLToPath } from 'url';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
-// https://vite.dev/config/
+// https://vitejs.dev/config/
 export default defineConfig({
   plugins: [react()],
+  server: {
+    host: '0.0.0.0',
+    port: 4000,
+    open: true,
+    strictPort: true,
+    cors: true,
+  },
   resolve: {
     alias: {
       '@': path.resolve(__dirname, 'src'),
