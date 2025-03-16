@@ -48,7 +48,7 @@ const LoginPage = () => {
 
                 <VStack spacing={4}>
                     <FormControl isRequired>
-                        <FormLabel>Email address</FormLabel>
+                        <FormLabel>Login Email address</FormLabel>
                         <Input
                             placeholder='Enter Email Address'
                             type='email'
