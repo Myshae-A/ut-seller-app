@@ -1,8 +1,11 @@
 import { VStack, Container, Heading, Box, useColorModeValue, Input, Button, useToast } from "@chakra-ui/react";
 import { useState } from "react";
-import { useProductStore } from "../store/product";
+// import { useProductStore } from "../store/product";
 // import { useAuth } from "../contexts/AuthContext";
-import { Navigate } from "react-router-dom";
+import { collection, addDoc, serverTimestamp } from "firebase/firestore";
+import { useNavigate } from "react-router-dom";
+
+import db from "../firebase-client";
 
 const CreatePage = () => {
   const [newProduct, setNewProduct] = useState({
@@ -11,35 +14,55 @@ const CreatePage = () => {
     image: "",
   });
   const toast = useToast();
-  const { createProduct } = useProductStore();
-  // const { currentUser } = useAuth();
-
-  // Redirect to login if not authenticated
-  // if (!currentUser) {
-  //   return <Navigate to="/login" replace />;
-  // } // causes error for now
+  const navigate = useNavigate();
 
   const handleAddProduct = async() => {
-    const {success, message} = await createProduct(newProduct);
-    if (!success) {
-      toast({
-        title: "Error",
-        description: message,
-        status: "error",
-        duration: 3000, // 3 seconds
-        isClosable: true,
-      });
-    } else {
+    try {
+      if (!newProduct.name || !newProduct.price || !newProduct.image) {
+        toast({
+          title: "Error",
+          description: "All fields are required",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+  
+      // Format the price as a number
+      const formattedProduct = {
+        ...newProduct,
+        price: parseFloat(newProduct.price),
+        createdAt: serverTimestamp()
+      };
+  
+      // Add the product to the database
+      await addDoc(collection(db, "products"), formattedProduct);
+      // tester code,  to see it working in console:
+      // const docRef = await addDoc(collection(db, "products"), formattedProduct);
+      // console.log("Document written with ID: ", docRef.id);
+      
       toast({
         title: "Success",
-        description: message,
+        description: "Product added successfully!",
         status: "success",
         duration: 3000,
         isClosable: true,
       });
+      
+      // Reset the form
+      setNewProduct({ name: "", price: "", image: "" });
+      navigate("/home");
+    } catch (error) {
+      console.error("Error adding product:", error);
+      toast({
+        title: "Error",
+        description: error.message,
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
     }
-    // resets the form to be cleared after inputting something in
-    setNewProduct({ name: "", price: "", image: "" }); 
   }
 
   return <Container maxW={"container.sm"}>

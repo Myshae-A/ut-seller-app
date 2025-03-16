@@ -33,7 +33,7 @@ export function AuthProvider({ children }) {
     const [currentUser, setCurrentUser] = useState(null);
     const [loading, setLoading] = useState(true);
     const [loginError, setLoginError] = useState(null);
-    loading ? console.log("Loading...") : console.log("Loaded");
+    // loading ? console.log("Loading...") : console.log("Loaded");
     // const VALID_USERNAME = 'myshae'
     // const VALID_PASSWORD = 'racecar'
 

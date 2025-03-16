@@ -11,7 +11,6 @@ const LoginPage = () => {
     const toast = useToast();
     const [loginEmail, setLoginEmail] = useState('');
     const [loginPassword, setLoginPassword] = useState('');
-
     const { login } = useAuth();
 
     const handleLogin = async (e) => {

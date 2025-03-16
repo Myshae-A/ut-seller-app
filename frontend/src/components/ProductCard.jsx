@@ -20,35 +20,52 @@ import {
 	useToast,
 	VStack
 } from "@chakra-ui/react";
-import { useProductStore } from "../store/product";
+// import { useProductStore } from "../store/product";
 import { useState } from "react";
+import { doc, deleteDoc, updateDoc } from "firebase/firestore";
+import db from "../firebase-client";
 
-const ProductCard = ({product}) => {
+const ProductCard = ({product, onDelete, onUpdate }) => {
     const [updatedProduct, setUpdatedProduct] = useState(product);
 
     const textColor = useColorModeValue("gray.600", "gray.200");
     const bg = useColorModeValue("white", "gray.800");
     
-    const { deleteProduct, updateProduct} = useProductStore()
+    // const { deleteProduct, updateProduct} = useProductStore()
     const toast = useToast();
     // for the modal
     const { isOpen, onOpen, onClose } = useDisclosure();
 
     const handleDeleteProduct = async (productId) => {
-        const {success, message} = await deleteProduct(productId);
-        if (!success) {
+        try {
+
+            // console.log("Deleting product with ID:", productId); // Debug log
+            
+            // Check if productId is valid
+            if (!productId) {
+                throw new Error("Invalid product ID");
+            }
+            // const {success, message} = await deleteProduct(productId);
+            const productRef = doc(db, "products", productId);
+
+            // delete the document:
+            await deleteDoc(productRef);
+
+            if (onDelete) onDelete();
+
             toast({
-                title: "Error",
-                description: message,
-                status: "error",
+                title: "Success",
+                description: "Product deleted successfully",
+                status: "success",
                 duration: 3000,
                 isClosable: true,
             });
-        } else {
+        } catch (error) {
+            console.error("Error deleting product:", error);
             toast({
-                title: "Success",
-                description: message,
-                status: "success",
+                title: "Error",
+                description: error.message,
+                status: "error",
                 duration: 3000,
                 isClosable: true,
             });
@@ -56,21 +73,36 @@ const ProductCard = ({product}) => {
     }
 
     const handleUpdateProduct = async (productId, updatedProduct) => {
-        const {success, message} = await updateProduct(productId, updatedProduct);
-        onClose();
-        if (!success) {
-            toast({
-                title: "Error",
-                description: message,
-                status: "error",
-                duration: 3000,
-                isClosable: true,
-            });
-        } else {
+        try {
+            // const {success, message} = await updateProduct(productId, updatedProduct);
+            const productRef = doc(db, "products", productId);
+
+            // Format the price as a number
+            const formattedProduct = {
+                ...updatedProduct,
+                price: parseFloat(updatedProduct.price),
+                updatedAt: new Date()
+            };
+
+            // update the document:
+            await updateDoc(productRef, formattedProduct);
+
+            if (onUpdate) onUpdate();
+
+            onClose();
             toast({
                 title: "Success",
                 description: "Product updated successfully",
                 status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+        } catch (error) {
+            console.error("Error updating product:", error);
+            toast({
+                title: "Error",
+                description: error.message,
+                status: "error",
                 duration: 3000,
                 isClosable: true,
             });
@@ -104,7 +136,7 @@ const ProductCard = ({product}) => {
                     colorScheme='blue' />
                     <IconButton
                         icon={<DeleteIcon />}
-                        onClick={() => handleDeleteProduct(product._id) }
+                        onClick={() => handleDeleteProduct(product.id) }
                         colorScheme='red'
                     />
                 </HStack>
@@ -128,7 +160,7 @@ const ProductCard = ({product}) => {
 
                     <ModalFooter>
                         <Button colorScheme='blue' mr={3}
-                        onClick={() => handleUpdateProduct(product._id, updatedProduct)}>
+                        onClick={() => handleUpdateProduct(product.id, updatedProduct)}>
                             Update
                         </Button>
                         <Button variant='ghost' onClick={onClose}>

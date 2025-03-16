@@ -1,72 +1,53 @@
-import { Container, VStack, Text, SimpleGrid } from '@chakra-ui/react';
-import { Link } from 'react-router-dom'; // useNavigate 
-import { useProductStore } from '../store/product';
-import { useEffect } from 'react'; // useState
+import { Container, VStack, Text, SimpleGrid, Spinner, Center } from '@chakra-ui/react';
+import { Link, Navigate } from 'react-router-dom'; // useNavigate
+import { useEffect, useState, useCallback } from 'react'; // useState
 import ProductCard from '../components/ProductCard';
-// import { onAuthStateChanged } from 'firebase/auth';
-// import { auth } from '../firebase-client';
 import { useAuth } from '../contexts/AuthContext';
+import { collection, getDocs } from 'firebase/firestore';
+import db from '../firebase-client';
 
 const HomePage = () => {
 
-  const { fetchProducts, products } = useProductStore();
+  const [products, setProducts] = useState([]);
   const { currentUser } = useAuth();
   // const navigate = useNavigate();
   // const [currentUser, setCurrentUser] = useState(null)
-  // const [isLoading, setIsLoading] = useState(true); // Track loading state
-  
 
+  const fetchProducts = useCallback(async () => {
+    try {
+      const productsCollection = collection(db, "products");
+      const productsSnapshot = await getDocs(productsCollection);
+
+      const productsList = productsSnapshot.docs.map((doc) => ({
+        id: doc.id,
+        ...doc.data()
+      }));
+
+      setProducts(productsList);
+    } catch (error) {
+      console.error("Error fetching products: ", error);
+    }
+  }, []);
+  
   useEffect(() => {
-    fetchProducts();
-  }, [fetchProducts, currentUser]);
+    if (currentUser) {
+      fetchProducts();
+    }
+  }, [currentUser, fetchProducts]);
   // console.log("products", products);
 
+  // Handler functions to pass to ProductCard
+  const handleProductDelete = () => {
+    fetchProducts(); // Re-fetch products after deletion
+  };
+
+  const handleProductUpdate = () => {
+    fetchProducts(); // Re-fetch products after update
+  };
 
   if (!currentUser) {
     return <Navigate to="/login" replace />;
   }
-  
-  // useEffect(() => {
-  //   const unsubscribe = onAuthStateChanged(auth, (user) => {
-  //     if(user) {
-  //       console.log("user detected 1: "+user.uid);
-  //       setCurrentUser(user.uid)
-        
-  //     } else {
-  //       console.log("no user detected 2: "+user.uid);
-  //       setCurrentUser(null)
-  //       navigate('/login');
-  //     }
-  //     setIsLoading(false);
-  //   });
-
-    // Cleanup subscription on unmount
-  //   return () => unsubscribe();
-  // }, [navigate]);
-
-  // useEffect(() => {
-  //   if (!isLoading && currentUser == null) {
-  //     navigate('/login');
-  //   } else {
-  //       fetch(`https://ut-seller-app.vercel.app/users/${currentUser}/listings`)
-  //       .then((response) => {
-  //         if (!response.ok) {
-  //           throw new Error(`HTTP error! status: ${response.status}`);
-  //         }
-  //         return response.json();
-  //       })
-  //       .then((data) => {
-  //         if(data.length > 0) {
-  //           // setTaskList(data); // Update taskList with the fetched data
-  //           console.log("1.0 use effect here : "+data)
-  //         }
-          
-  //       })
-  //       .catch((error) => {
-  //         console.error("'use effect FAILED TO FETCH: ", error);
-  //       });
-  //     }
-  // }, [currentUser]);
 
   return (
     <Container maxW='container.xl' py={12}>
@@ -91,7 +72,12 @@ const HomePage = () => {
           w={"full"}
         >
           {products.map((product) => (
-            <ProductCard key={product._id} product={product} />
+            <ProductCard
+            key={product.id}
+            product={product}
+            onDelete={handleProductDelete}
+            onUpdate={handleProductUpdate}
+            />
           ))}
         </SimpleGrid> 
 
