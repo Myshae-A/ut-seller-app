@@ -44,41 +44,65 @@ const SignUpPage = () => {
 
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">
-            <Box w={"full"} bg={useColorModeValue("white", "gray.800")}
-                p={6} rounded={"lg"} shadow={"md"}>
-                <Text
-                    fontSize={"40"}
-                    fontWeight={"bold"}
-                    bgGradient={"linear(to-r, cyan.400, blue.500)"}
-                    bgClip={"text"}
-                    textAlign={"center"}
-                >
-                    Register
-                </Text>
-
-                <VStack spacing={4}>
+           <Box width="50%">
+                <Box mb={8}>
+                    <Text
+                        fontSize={"50"}
+                        fontFamily={'NanumMyeongjo'}
+                        bgColor={'black'}
+                        bgClip={"text"}
+                        textAlign={"center"}
+                        mb={0}
+                        lineHeight={2}
+                    >
+                    MISO
+                    </Text>
+                    <Text
+                        fontSize={"20"}
+                        bgColor={'black'}
+                        bgClip={"text"}
+                        textAlign={"center"}
+                        mt={0}
+                    >
+                    Sign Up
+                    </Text>
+                </Box>
+           
+                <VStack spacing={6}>
                     <FormControl isRequired>
-                        <FormLabel>Email address</FormLabel>
                         <Input 
-                            placeholder='Enter Email Address'
+                            bg="rgb(221, 147, 51, .33)"
+                            fontSize={18}
+                            fontColor="black"
+                            borderRadius={10}
+                            padding={5}
+                            placeholder='Email'
                             type='email'
                             onChange={(e) => setRegisterEmail(e.target.value)}
                         />
-                        <FormHelperText>Must end with @utexas.edu domain.</FormHelperText>
+                        <FormHelperText fontSize={12}>Must end with @utexas.edu domain.</FormHelperText>
                     </FormControl>
 
                     <FormControl isRequired>
-                        <FormLabel>Password</FormLabel>
                         <Input
-                            placeholder='Enter Password'
+                            bg="rgb(221, 147, 51, .33)"
+                            fontSize={18}
+                            fontColor="black"
+                            borderRadius={10}
+                            padding={5}
+                            placeholder='Password'
                             type='password'
                             onChange={(e) => setRegisterPassword(e.target.value)}
                         />
-                        <FormHelperText>Must be at least 6 characters.</FormHelperText>
+                        <FormHelperText fontSize={12}>Must be at least 6 characters.</FormHelperText>
                     </FormControl>
 
                     <Button
-                        colorScheme='blue'
+                        bgColor={"rgb(221, 147, 51)"}
+                        fontSize={18}
+                        fontColor="black"
+                        borderRadius={20}
+                        padding={5}
                         textAlign={"center"}
                         w="full"
                         onClick={handleRegister}
@@ -90,7 +114,7 @@ const SignUpPage = () => {
                         cursor='pointer'
                         onClick={() => navigate('/login')}
                     >
-                        Back to login.
+                        Already have an account? Log in!
                     </Text>
                 </VStack>
             </Box>

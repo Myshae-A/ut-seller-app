@@ -34,39 +34,63 @@ const LoginPage = () => {
 
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">
-            <Box w={"full"} bg={useColorModeValue("white", "gray.800")}
-                    p={6} rounded={"lg"} shadow={"md"}>
-                <Text
-                    fontSize={"40"}
-                    fontWeight={"bold"}
-                    bgGradient={"linear(to-r, cyan.400, blue.500)"}
-                    bgClip={"text"}
-                    textAlign={"center"}
-                >
-                    Login
-                </Text>
+            <Box width="50%">
+                <Box mb={8}>
+                    <Text
+                        fontSize={"50"}
+                        fontFamily={'NanumMyeongjo'}
+                        bgColor={'black'}
+                        bgClip={"text"}
+                        textAlign={"center"}
+                        mb={0}
+                        lineHeight={2}
+                    >
+                        MISO
+                    </Text>
+                    <Text
+                        fontSize={"20"}
+                        bgColor={'black'}
+                        bgClip={"text"}
+                        textAlign={"center"}
+                        mt={0}
+                    >
+                        Log In
+                    </Text>
+                </Box>
 
-                <VStack spacing={4}>
+                <VStack spacing={6}>
                     <FormControl isRequired>
-                        <FormLabel>Login Email address</FormLabel>
-                        <Input
-                            placeholder='Enter Email Address'
+                        <Input 
+                            bg="rgb(221, 147, 51, .33)"
+                            fontSize={18}
+                            fontColor="black"
+                            borderRadius={10}
+                            padding={5}
+                            placeholder='Email'
                             type='email'
                             onChange={(e) => setLoginEmail(e.target.value)}/>
-                        <FormHelperText>Must end with @utexas.edu domain.</FormHelperText>
+                        <FormHelperText fontSize={12}>Must end with @utexas.edu domain.</FormHelperText>
                     </FormControl>
 
                     <FormControl isRequired>
-                        <FormLabel>Password</FormLabel>
                         <Input
-                            placeholder='Enter Password'
+                            bg="rgb(221, 147, 51, .33)"
+                            fontSize={18}
+                            fontColor="black"
+                            borderRadius={10}
+                            padding={5}
+                            placeholder='Password'
                             type='password'
                             onChange={(e) => setLoginPassword(e.target.value)}/>
-                        <FormHelperText>Must be at least 6 characters.</FormHelperText>
+                        <FormHelperText fontSize={12}>Must be at least 6 characters.</FormHelperText>
                     </FormControl>
 
                     <Button
-                        colorScheme='blue'
+                        bgColor={"rgb(221, 147, 51)"}
+                        fontSize={18}
+                        fontColor="black"
+                        borderRadius={20}
+                        padding={5}
                         textAlign={"center"}
                         w="full"
                         onClick={handleLogin}
@@ -79,7 +103,7 @@ const LoginPage = () => {
                         cursor='pointer'
                         onClick={() => navigate('/signup')}
                     >
-                        No account? Register here!
+                        Don't have an account? Sign up!
                     </Text>
                 </VStack>
             </Box>
