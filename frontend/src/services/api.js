@@ -1,4 +1,5 @@
 const API_URL = 'http://localhost:5000/api'; // Update with your backend URL
+// const API_URL = 'https://ut-seller-app.vercel.app/api'; // Update with your backend URL
 
 export const fetchProducts = async () => {
     try {
