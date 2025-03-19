@@ -21,10 +21,12 @@ import { Box,
 import { CloseIcon, AddIcon } from '@chakra-ui/icons';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+// import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
+// import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
+import { addProduct, uploadImage } from '../services/api'; // uploadImage
+// import { storage } from '../services/firebase-client';
 
-import db from "../firebase-client";
+// import db from '../services/firebase-client';
 
 const CreatePage = () => {
   // Expanded product state to include all fields
@@ -92,14 +94,14 @@ const CreatePage = () => {
       if (imageFile) {
         try {
           // Create a unique path for the image
-          const imagePath = `products/${Date.now()}-${imageFile.name}`;
-          const imageRef = ref(storage, imagePath);
+          // const imagePath = `products/${Date.now()}-${imageFile.name}`;
+          // const imageRef = ref(storage, imagePath);
           
-          // Upload the image
-          await uploadBytes(imageRef, imageFile);
+          // // Upload the image
+          // await uploadBytes(imageRef, imageFile);
           
           // Get the download URL
-          const downloadUrl = await getDownloadURL(imageRef);
+          const downloadUrl = await uploadImage(imageFile);
           uploadedUrls.push(downloadUrl);
         } catch (error) {
           console.error("Error uploading image:", error);
@@ -149,11 +151,11 @@ const CreatePage = () => {
         price: parseFloat(newProduct.price),
         image: uploadedImageUrls[0], // Main image is the first one
         additionalImages: uploadedImageUrls.slice(1).filter(url => url), // Additional images
-        createdAt: serverTimestamp()
+        createdAt: new Date()
       };
       
       // Add the product to the database
-      await addDoc(collection(db, "products"), formattedProduct);
+      await addProduct(formattedProduct);
       
       toast({
         title: "Success",
@@ -211,7 +213,7 @@ const CreatePage = () => {
         borderRadius="full"
         aria-label="Close"
         bg="gray.200"
-        onClick={() => window.location.href = '/home'}
+        onClick={() => navigate("/home")}
       />
     </Flex>
 

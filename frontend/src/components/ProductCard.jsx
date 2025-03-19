@@ -22,8 +22,7 @@ import {
 } from "@chakra-ui/react";
 // import { useProductStore } from "../store/product";
 import { useState } from "react";
-import { doc, deleteDoc, updateDoc } from "firebase/firestore";
-import db from "../firebase-client";
+import { deleteProduct, updateProduct } from "../services/api";
 
 const ProductCard = ({product, onDelete, onUpdate }) => {
     const [updatedProduct, setUpdatedProduct] = useState(product);
@@ -46,10 +45,10 @@ const ProductCard = ({product, onDelete, onUpdate }) => {
                 throw new Error("Invalid product ID");
             }
             // const {success, message} = await deleteProduct(productId);
-            const productRef = doc(db, "products", productId);
+            // const productRef = doc(db, "products", productId);
 
             // delete the document:
-            await deleteDoc(productRef);
+            await deleteProduct(productId);
 
             if (onDelete) onDelete();
 
@@ -74,18 +73,8 @@ const ProductCard = ({product, onDelete, onUpdate }) => {
 
     const handleUpdateProduct = async (productId, updatedProduct) => {
         try {
-            // const {success, message} = await updateProduct(productId, updatedProduct);
-            const productRef = doc(db, "products", productId);
-
-            // Format the price as a number
-            const formattedProduct = {
-                ...updatedProduct,
-                price: parseFloat(updatedProduct.price),
-                updatedAt: new Date()
-            };
-
-            // update the document:
-            await updateDoc(productRef, formattedProduct);
+           
+            await updateProduct(productId, updatedProduct);
 
             if (onUpdate) onUpdate();
 

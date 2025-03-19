@@ -4,18 +4,19 @@ import { useNavigate } from 'react-router-dom';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
+
     onAuthStateChanged,
-    signOut
-} from "firebase/auth";
-import { auth } from '../firebase-client';
+    signOut,
+    
+} from "firebase/auth"; //sendEmailVerification, sendSignInLinkToEmail,
+// isSignInWithEmailLink, signInWithEmailLink,
+import { auth } from '../services/firebase-client';
 // import { initializeApp } from "firebase/app";
 // import { firebaseConfig } from "../firebase-client";
-import { doc, setDoc, getDoc } from "firebase/firestore"; // Firestore imports
-import db from "../firebase-client";
+import { registerUser } from '../services/api';
 
 // const app = initializeApp(firebaseConfig);
 // const auth = getAuth(app);
-// const db = getFirestore(app); // Firestore instance
 
 // Creating a context for authentication. Contexts provide a way to pass data through 
 // the component tree without having to pass props down manually at every level.
@@ -31,7 +32,6 @@ export const useAuth = () => {
 export function AuthProvider({ children }) {
     const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState(null);
-    const [loading, setLoading] = useState(true);
     const [loginError, setLoginError] = useState(null);
     // loading ? console.log("Loading...") : console.log("Loaded");
     // const VALID_USERNAME = 'myshae'
@@ -41,7 +41,6 @@ export function AuthProvider({ children }) {
     useEffect(() => {
         const unsubscribe = onAuthStateChanged(auth, async (user) => {
             setCurrentUser(user);
-            setLoading(false);
             
             if (user) {
                 // Store minimal user info in localStorage
@@ -49,23 +48,6 @@ export function AuthProvider({ children }) {
                     uid: user.uid,
                     email: user.email
                 }));
-                
-                // Check if user document exists, if not create it
-                try {
-                    const userDocRef = doc(db, "users", user.uid);
-                    const userDoc = await getDoc(userDocRef);
-                    
-                    if (!userDoc.exists()) {
-                        await setDoc(userDocRef, {
-                            email: user.email,
-                            createdAt: new Date(),
-                            listings: []
-                        });
-                        console.log("User document created in Firestore");
-                    }
-                } catch (error) {
-                    console.error("Error checking/creating user document:", error);
-                }
             } else {
                 localStorage.removeItem('user');
             }
@@ -80,20 +62,25 @@ export function AuthProvider({ children }) {
         try {
             setLoginError(null);
             
-            if (!email.endsWith('@utexas.edu')) {
-                setLoginError('Please enter a valid UTexas email address.');
-                return { success: false, message: 'Please enter a valid UTexas email address.' };
+            if (email.endsWith('@utexas.edu')) {
+                setLoginError('Please enter a non-@utexas.edu email.');
+                return { success: false, message: 'Please enter a non-@utexas.edu email.' };
+            }
+
+            if (password.length < 6) {
+                setLoginError('Password must be at least 6 characters long.');
+                return { success: false, message: 'Password must be at least 6 characters long.' };
             }
             
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
+            console.log("User created? :", user);
             
-            // Add the user document to Firestore
-            await setDoc(doc(db, "users", user.uid), {
-                email: user.email,
-                createdAt: new Date(),
-                listings: []
-            });
+            // Call backend API to create user document
+            const { success, message } = await registerUser(email, password);
+            if (!success) {
+                throw new Error(message);
+            }
             
             navigate("/home");
             return { success: true, message: 'Account successfully created.' };
@@ -135,7 +122,7 @@ export function AuthProvider({ children }) {
         login,
         logout,
         register,
-        loginError
+        loginError,
     };
 
     // The AuthProvider component uses the AuthContext.Provider to wrap its children.

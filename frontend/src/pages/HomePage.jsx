@@ -3,8 +3,7 @@ import { Link, Navigate } from 'react-router-dom'; // useNavigate
 import { useEffect, useState, useCallback } from 'react'; // useState
 import ProductCard from '../components/ProductCard';
 import { useAuth } from '../contexts/AuthContext';
-import { collection, getDocs } from 'firebase/firestore';
-import db from '../firebase-client';
+import { fetchProducts } from '../services/api';
 
 const HomePage = () => {
 
@@ -13,16 +12,9 @@ const HomePage = () => {
   // const navigate = useNavigate();
   // const [currentUser, setCurrentUser] = useState(null)
 
-  const fetchProducts = useCallback(async () => {
+  const fetchProductsList = useCallback(async () => {
     try {
-      const productsCollection = collection(db, "products");
-      const productsSnapshot = await getDocs(productsCollection);
-
-      const productsList = productsSnapshot.docs.map((doc) => ({
-        id: doc.id,
-        ...doc.data()
-      }));
-
+      const productsList = await fetchProducts();
       setProducts(productsList);
     } catch (error) {
       console.error("Error fetching products: ", error);
@@ -31,18 +23,18 @@ const HomePage = () => {
   
   useEffect(() => {
     if (currentUser) {
-      fetchProducts();
+      fetchProductsList();
     }
-  }, [currentUser, fetchProducts]);
+  }, [currentUser, fetchProductsList]);
   // console.log("products", products);
 
   // Handler functions to pass to ProductCard
   const handleProductDelete = () => {
-    fetchProducts(); // Re-fetch products after deletion
+    fetchProductsList(); // Re-fetch products after deletion
   };
 
   const handleProductUpdate = () => {
-    fetchProducts(); // Re-fetch products after update
+    fetchProductsList(); // Re-fetch products after update
   };
 
   if (!currentUser) {

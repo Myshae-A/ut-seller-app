@@ -1,9 +1,11 @@
 import React, { useState } from 'react';
-import { Button, Container, FormControl, useToast, VStack, Text, Input, FormLabel, FormHelperText, Box, useColorModeValue } from '@chakra-ui/react';
+import { Button, Container, FormControl, useToast, VStack, Text, Input, FormLabel, FormHelperText, Box } from '@chakra-ui/react'; // useColorModeValue
 // import { auth } from '../firebase-client';
 import { useNavigate } from 'react-router-dom';
 // import { createUserWithEmailAndPassword } from 'firebase/auth';
-import { useAuth } from '../contexts/AuthContext';
+
+// import { useAuth } from '../contexts/AuthContext';
+import { registerUser } from '../services/api';
 
 // import { getFirestore, doc, setDoc } from "firebase/firestore"; // Import Firestore functions
 // const db = getFirestore();
@@ -11,7 +13,7 @@ import { useAuth } from '../contexts/AuthContext';
 const SignUpPage = () => {
 
     const navigate = useNavigate();
-    const { register } = useAuth();
+    // const { register } = useAuth();
     const [registerEmail, setRegisterEmail] = useState('');
     const [registerPassword, setRegisterPassword] = useState('');
     const toast = useToast();
@@ -19,7 +21,7 @@ const SignUpPage = () => {
     const handleRegister = async (e) => {
         e.preventDefault();
         // TODO: Add Firebase signup with email/password functionality here.
-        const { success, message } = await register(registerEmail, registerPassword);
+        const { success, message } = await registerUser(registerEmail, registerPassword);
         
         if (success) {
             setRegisterEmail('');
@@ -31,6 +33,7 @@ const SignUpPage = () => {
                 duration: 3000,
                 isClosable: true,
             });
+            navigate('/login');
         } else {
             toast({
                 title: "Error",
@@ -41,6 +44,7 @@ const SignUpPage = () => {
             });
         }
     };
+
 
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">
@@ -109,6 +113,7 @@ const SignUpPage = () => {
                     >
                         Register
                     </Button>
+
                     <Text
                         as='u'
                         cursor='pointer'

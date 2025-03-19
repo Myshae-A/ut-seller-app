@@ -4,6 +4,10 @@ import { useNavigate } from 'react-router-dom';
 // import { auth } from '../firebase-client';
 // import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
+import { auth, googleProvider } from '../services/firebase-client';
+import { signInWithPopup } from 'firebase/auth';
+import { registerGoogleUser } from '../services/api';
+
 
 const LoginPage = () => {
 
@@ -30,6 +34,36 @@ const LoginPage = () => {
             setLoginPassword('');
         }
       };
+
+      
+          const handleGoogleSignIn = async () => {
+              try {
+                  
+                  const result = await signInWithPopup(auth, googleProvider);
+                  const user = result.user;
+                  
+                  // console.log("registering google user: ", user.email, user.displayName);
+                  await registerGoogleUser(user.uid);
+
+                  // Handle user information and navigate to the desired page
+                  toast({
+                      title: "Success",
+                      description: `Welcome ${user.displayName}`,
+                      status: "success",
+                      duration: 3000,
+                      isClosable: true,
+                  });
+                  navigate('/home');
+              } catch (error) {
+                  toast({
+                      title: "Error",
+                      description: error.message,
+                      status: "error",
+                      duration: 3000,
+                      isClosable: true,
+                  });
+              }
+          };
 
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">
@@ -68,7 +102,7 @@ const LoginPage = () => {
                             placeholder='Email'
                             type='email'
                             onChange={(e) => setLoginEmail(e.target.value)}/>
-                        <FormHelperText fontSize={12}>Must end with @utexas.edu domain.</FormHelperText>
+                        <FormHelperText fontSize={12}>For any non-@utexas.edu domain.</FormHelperText>
                     </FormControl>
 
                     <FormControl isRequired>
@@ -95,6 +129,19 @@ const LoginPage = () => {
                         onClick={handleLogin}
                     >
                         Login
+                    </Button>
+
+                    <Button
+                        bgColor={"rgb(204, 85, 0)"}
+                        fontSize={18}
+                        fontColor="white"
+                        borderRadius={20}
+                        padding={5}
+                        textAlign={"center"}
+                        w="full"
+                        onClick={handleGoogleSignIn}
+                    >
+                        Login with @utexas.edu
                     </Button>
                     
                     <Text
