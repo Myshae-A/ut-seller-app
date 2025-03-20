@@ -17,7 +17,7 @@ const app = express();
 app.use(bodyParser.json()); // must keep this...
 
 app.use(cors({
-    origin: ['http://localhost:5173', 'https://ut-seller-app.vercel.app', 'http://localhost:4000']
+    origin: ['https://ut-seller-app-miso.vercel.app', 'http://localhost:5173', 'http://localhost:4000']
 }));
 
 // const __dirname = path.resolve();
