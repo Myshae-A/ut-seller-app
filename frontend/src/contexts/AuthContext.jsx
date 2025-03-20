@@ -1,22 +1,14 @@
-// Importing necessary hooks and functionalities
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
-
     onAuthStateChanged,
     signOut,
     
-} from "firebase/auth"; //sendEmailVerification, sendSignInLinkToEmail,
-// isSignInWithEmailLink, signInWithEmailLink,
+} from "firebase/auth";
 import { auth } from '../services/firebase-client';
-// import { initializeApp } from "firebase/app";
-// import { firebaseConfig } from "../firebase-client";
 import { registerUser } from '../services/api';
-
-// const app = initializeApp(firebaseConfig);
-// const auth = getAuth(app);
 
 // Creating a context for authentication. Contexts provide a way to pass data through 
 // the component tree without having to pass props down manually at every level.
@@ -33,9 +25,6 @@ export function AuthProvider({ children }) {
     const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState(null);
     const [loginError, setLoginError] = useState(null);
-    // loading ? console.log("Loading...") : console.log("Loaded");
-    // const VALID_USERNAME = 'myshae'
-    // const VALID_PASSWORD = 'racecar'
 
     // Listen for auth state changes
     useEffect(() => {
@@ -56,8 +45,7 @@ export function AuthProvider({ children }) {
         return unsubscribe;
     }, []);
 
-    // sign up new users
-    // Register function
+    // sign up new users in register function
     const register = async (email, password) => {
         try {
             setLoginError(null);

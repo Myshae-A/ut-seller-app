@@ -20,7 +20,6 @@ import {
 	useToast,
 	VStack
 } from "@chakra-ui/react";
-// import { useProductStore } from "../store/product";
 import { useState } from "react";
 import { deleteProduct, updateProduct } from "../services/api";
 
@@ -29,8 +28,6 @@ const ProductCard = ({product, onDelete, onUpdate }) => {
 
     const textColor = useColorModeValue("gray.600", "gray.200");
     const bg = useColorModeValue("white", "gray.800");
-    
-    // const { deleteProduct, updateProduct} = useProductStore()
     const toast = useToast();
     // for the modal
     const { isOpen, onOpen, onClose } = useDisclosure();
@@ -39,14 +36,10 @@ const ProductCard = ({product, onDelete, onUpdate }) => {
         try {
 
             // console.log("Deleting product with ID:", productId); // Debug log
-            
             // Check if productId is valid
             if (!productId) {
                 throw new Error("Invalid product ID");
             }
-            // const {success, message} = await deleteProduct(productId);
-            // const productRef = doc(db, "products", productId);
-
             // delete the document:
             await deleteProduct(productId);
 
@@ -97,7 +90,6 @@ const ProductCard = ({product, onDelete, onUpdate }) => {
             });
         }
     }
-
 
     return (
         <Box

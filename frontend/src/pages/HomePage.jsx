@@ -7,10 +7,9 @@ import { fetchProducts } from '../services/api';
 
 const HomePage = () => {
 
-  const [products, setProducts] = useState([]);
+  const [ products, setProducts ] = useState([]);
   const { currentUser } = useAuth();
   // const navigate = useNavigate();
-  // const [currentUser, setCurrentUser] = useState(null)
 
   const fetchProductsList = useCallback(async () => {
     try {
@@ -26,7 +25,6 @@ const HomePage = () => {
       fetchProductsList();
     }
   }, [currentUser, fetchProductsList]);
-  // console.log("products", products);
 
   // Handler functions to pass to ProductCard
   const handleProductDelete = () => {

@@ -21,12 +21,7 @@ import { Box,
 import { CloseIcon, AddIcon } from '@chakra-ui/icons';
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { collection, addDoc, serverTimestamp } from 'firebase/firestore';
-// import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { addProduct, uploadImage } from '../services/api'; // uploadImage
-// import { storage } from '../services/firebase-client';
-
-// import db from '../services/firebase-client';
 
 const CreatePage = () => {
   // Expanded product state to include all fields

@@ -1,8 +1,6 @@
 import { useToast, Button, Container, FormControl, HStack, VStack, Text, Input, FormLabel, FormHelperText, Box  } from '@chakra-ui/react'; // useColorModeValue
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-// import { auth } from '../firebase-client';
-// import { signInWithEmailAndPassword } from 'firebase/auth';
 import { useAuth } from '../contexts/AuthContext';
 import { auth, googleProvider } from '../services/firebase-client';
 import { signInWithPopup } from 'firebase/auth';
@@ -34,36 +32,35 @@ const LoginPage = () => {
             setLoginPassword('');
         }
       };
-
       
-          const handleGoogleSignIn = async () => {
-              try {
-                  
-                  const result = await signInWithPopup(auth, googleProvider);
-                  const user = result.user;
-                  
-                  // console.log("registering google user: ", user.email, user.displayName);
-                  await registerGoogleUser(user.uid);
+    const handleGoogleSignIn = async () => {
+        try {
+            
+            const result = await signInWithPopup(auth, googleProvider);
+            const user = result.user;
+            
+            // console.log("registering google user: ", user.email, user.displayName);
+            await registerGoogleUser(user.uid);
 
-                  // Handle user information and navigate to the desired page
-                  toast({
-                      title: "Success",
-                      description: `Welcome ${user.displayName}`,
-                      status: "success",
-                      duration: 3000,
-                      isClosable: true,
-                  });
-                  navigate('/home');
-              } catch (error) {
-                  toast({
-                      title: "Error",
-                      description: error.message,
-                      status: "error",
-                      duration: 3000,
-                      isClosable: true,
-                  });
-              }
-          };
+            // Handle user information and navigate to the desired page
+            toast({
+                title: "Success",
+                description: `Welcome ${user.displayName}`,
+                status: "success",
+                duration: 3000,
+                isClosable: true,
+            });
+            navigate('/home');
+        } catch (error) {
+            toast({
+                title: "Error",
+                description: error.message,
+                status: "error",
+                duration: 3000,
+                isClosable: true,
+            });
+        }
+    };
 
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">

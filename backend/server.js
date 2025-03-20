@@ -1,16 +1,12 @@
 import express from 'express';
 import dotenv from 'dotenv';
-
-// import db from './config/firebase-admin.js';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import { admin, db } from './config/firebase-admin.js';
-// import { sendEmailVerification } from 'firebase/auth';
 import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import multer from 'multer';
 
 const upload = multer({ storage: multer.memoryStorage() });
-
 
 dotenv.config();
 const app = express();
@@ -20,21 +16,15 @@ app.use(cors({
     origin: ['https://ut-seller-app-miso.vercel.app', 'http://localhost:5173', 'http://localhost:4000']
 }));
 
-// const __dirname = path.resolve();
-
 app.use(express.json()); // allows us to accept JSON data in the req.body
 
-// // Using Postman to test without having a frontend!
-// app.use("/api/users", productRoutes);
-
+// two "sanity check" testing routes
 app.get('/', (req, res) => {
   res.json({ message: 'Hello World!' });
 })
-
 app.get('/api', (req, res) => {
     res.json({ message: 'Hello World (from api)!' });
 }) 
-  
 
 // GET: Fetch all products
 app.get('/api/products', async (req, res) => {
@@ -117,12 +107,11 @@ app.post('/api/register', async (req, res) => {
       const user = userCredential;
 
       // Send email verification -- doesn't work
-    //   await admin.auth().generateEmailVerificationLink(email).then(() => {
-
-    //     console.log("success" + emailVerificationLink)
-    //   }).catch((error) => {
-    //     console.error("Error sending email verification:", error);
-    //   });
+      // await admin.auth().generateEmailVerificationLink(email).then(() => {
+      //   console.log("success" + emailVerificationLink)
+      // }).catch((error) => {
+      //   console.error("Error sending email verification:", error);
+      // });
 
       // Create user document in Firestore -- works
       await db.collection('users').doc(user.uid).set({
@@ -132,7 +121,7 @@ app.post('/api/register', async (req, res) => {
           postedProductsConfirmed: [],
           requestedProductsPending: [],
           requestedProductsConfirmed: [],
-          emailVerified: false // Start as unverified
+          emailVerified: false // Start as unverified (if logging in without google auth)
       });
 
       res.status(201).json({ success: true, message: 'User registered successfully' });
@@ -146,15 +135,14 @@ app.post('/api/register', async (req, res) => {
 app.post('/api/register-google', async (req, res) => {
   const { uid } = req.body;
   try {
-    // check if user already exists in firebase:
+    // check if user already exists in firebase (using uid):
     // console.log("uid: ", uid)
     const userCredential = await admin.auth().getUser(uid);
     const user = userCredential;
 
-    // console.log("postedProducts? "+user.postedProductsPending);
     const userDoc = await db.collection('users').doc(uid).get("postedProductsPending");
-    if (userDoc.exists) { // if user document already exists in Firestore,
-        // then user already exists, so skip
+    if (userDoc.exists) {
+        // if user document already exists in Firestore, thus user already exists, so skip
         // console.log("User document already exists in Firestore");
     } else {
         // console.log("User document does not exist in Firestore");
@@ -180,6 +168,5 @@ app.post('/api/register-google', async (req, res) => {
 const PORT = process.env.PORT || 5000;
 
 app.listen(PORT, () => {
-    // connectDB();
     console.log('Server started at https://ut-seller-app.vercel.app:' + PORT);
 });

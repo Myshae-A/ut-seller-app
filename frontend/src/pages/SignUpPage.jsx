@@ -1,19 +1,12 @@
 import React, { useState } from 'react';
 import { Button, Container, FormControl, useToast, VStack, Text, Input, FormLabel, FormHelperText, Box } from '@chakra-ui/react'; // useColorModeValue
-// import { auth } from '../firebase-client';
 import { useNavigate } from 'react-router-dom';
-// import { createUserWithEmailAndPassword } from 'firebase/auth';
-
-// import { useAuth } from '../contexts/AuthContext';
 import { registerUser } from '../services/api';
 
-// import { getFirestore, doc, setDoc } from "firebase/firestore"; // Import Firestore functions
-// const db = getFirestore();
 
 const SignUpPage = () => {
 
     const navigate = useNavigate();
-    // const { register } = useAuth();
     const [registerEmail, setRegisterEmail] = useState('');
     const [registerPassword, setRegisterPassword] = useState('');
     const toast = useToast();
@@ -44,7 +37,6 @@ const SignUpPage = () => {
             });
         }
     };
-
 
     return (
         <Container maxW='container.sm' py={44} display="flex" justifyContent="center" alignItems="center">
