@@ -29,7 +29,12 @@ app.use(express.json()); // allows us to accept JSON data in the req.body
 
 app.get('/', (req, res) => {
   res.json({ message: 'Hello World!' });
+})
+
+app.get('/api', (req, res) => {
+    res.json({ message: 'Hello World (from api)!' });
 }) 
+  
 
 // GET: Fetch all products
 app.get('/api/products', async (req, res) => {
