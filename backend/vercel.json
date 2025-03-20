@@ -1,5 +1,6 @@
 {
     "version": 2,
+    "name": "mern-crash-course",
     "builds": [
       {
         "src": "backend/server.js",
