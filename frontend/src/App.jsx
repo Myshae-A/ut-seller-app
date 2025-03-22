@@ -6,6 +6,8 @@ import HomePage from "./pages/HomePage";
 import Navbar from "./components/Navbar";
 import SignUpPage from "./pages/SignUpPage";
 import LoginPage from "./pages/LoginPage";
+import AccountPage from "./pages/AccountPage";
+
 
 import 'bootstrap/dist/css/bootstrap.min.css';
 import { AuthProvider } from "./contexts/AuthContext";
@@ -26,6 +28,7 @@ function App() {
           <Route path="/login" element={<LoginPage />} />
           <Route path="/home" element={<HomePage />} />
           <Route path="/create" element={<CreatePage />} />
+          <Route path="/account" element={<AccountPage />} />
         </Routes>
       </Box>
     </AuthProvider>

@@ -193,7 +193,7 @@ const CreatePage = () => {
   const fileInputRefs = Array(4).fill().map(() => React.createRef());
 
   return (
-    <Box maxW="1000px" mx="auto" p={4}>
+    <Box maxW="1000px" mx="auto" p={4} bg="white">
       <Flex justify="space-between" align="center" mb={4}>
       <Text 
         fontSize="xl"

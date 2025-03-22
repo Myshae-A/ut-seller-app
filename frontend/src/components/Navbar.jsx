@@ -1,72 +1,80 @@
-import { Container, Flex, HStack, Button, Text, useColorMode } from '@chakra-ui/react';
-import { Link, useLocation, useNavigate } from 'react-router-dom';
-import { PlusSquareIcon, ArrowBackIcon } from '@chakra-ui/icons';
+import { Flex, Button, Text, useColorMode, Icon, IconButton, Box, Heading } from '@chakra-ui/react';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { IoMoon } from 'react-icons/io5';
 import { LuSun } from 'react-icons/lu';
 import { useAuth } from '../contexts/AuthContext';
+import { FiUser } from 'react-icons/fi';
+import { AddIcon } from '@chakra-ui/icons';
 
 const Navbar = () => {
   
   const { colorMode, toggleColorMode } = useColorMode();
   const currentNav = useLocation();
   const navigate = useNavigate();
-  const { logout, currentUser } = useAuth();
+  //const { logout, currentUser } = useAuth();
 
   const handleHomeNavigation = () => {
-    if (currentNav.pathname === '/create') {
-      navigate('/home');
-    }
+    navigate('/home');
   }
 
-  const handleLogout = async () => {
-    await logout();
+  const handleAccountNavigation = () => {
+    navigate('/account');
   }
 
-  return <Container maxW={"1140px"} px={4} >
-    <Flex
-      h={16}
-      alignItems={"center"}
-      justifyContent={"space-between"}
-      flexDir={{
-        base: "column",
-        sm: "row",
-      }}
-    >
-      <Text
-        cursor="pointer"
-        fontSize={{ base: "22", sm: "28" }}
-        fontWeight={"bold"}
-        textTransform={"uppercase"}
-        textAlign={"center"}
-        bgGradient={"linear(to-r, cyan.400, blue.500)"}
-        bgClip={"text"}
+  // const handleLogout = async () => {
+  //   await logout();
+  // }
+
+  const handleCreateNavigation = () => {
+    navigate('/create');
+}
+
+return (
+  <Box py="4" px="6" bg="white" boxShadow="sm">
+    <Flex justify="space-between" align="center">
+      {/* MISO LOGO */}
+      <Heading
+        fontWeight="normal"
+        size="2xl"
+        fontFamily="NanumMyeongjo"
         onClick={handleHomeNavigation}
+        cursor="pointer" 
       >
-        Product Store 🛒
-      </Text>
+        MISO
+      </Heading>
 
-      <HStack spacing={2} alignItems={"center"}>
-        {currentUser && (
-          <>
-          <Link to={"/create"}>CreatePage
-            <Button>
-                <PlusSquareIcon fontSize={20} />
-            </Button>
-          </Link>
-          <Link to={"/login"}>Sign Out
-
-          <Button onClick={handleLogout}>
-          <ArrowBackIcon fontSize={20} />
-          </Button>
-          </Link>
-          </>
-        )}
-
-        <Button onClick={toggleColorMode}>
-          {colorMode === "light" ? <IoMoon /> : <LuSun size={20}/>}
+      <Flex align="center">
+        {/* dark/light mode */}
+        <Button
+          onClick={toggleColorMode}
+          variant="ghost" 
+          aria-label="Toggle color mode"
+          mr="2"
+        >
+          {colorMode === 'light' ? <IoMoon size={20} /> : <LuSun size={20} />}
         </Button>
-      </HStack>
+
+        {/* create item button */}
+        <IconButton
+          aria-label="Add new listing"
+          icon={<AddIcon />}
+          bgColor="rgb(221, 147, 51)"
+          borderRadius="full"
+          mr="2"
+          onClick={handleCreateNavigation}
+        />
+
+        {/* account button */}
+        <IconButton
+          aria-label="User profile"
+          icon={<Icon as={FiUser} boxSize={6} color="gray.800" />}
+          bgColor="rgba(221, 147, 51, 0.4)"
+          borderRadius="full"
+          onClick={handleAccountNavigation}
+        />
+      </Flex>
     </Flex>
-  </Container>
+  </Box>
+);
 };
 export default Navbar;
