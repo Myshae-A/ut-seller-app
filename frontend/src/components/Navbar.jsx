@@ -47,15 +47,6 @@ return (
       
 
       <Flex align="center">
-        {/* dark/light mode */}
-        <Button
-          onClick={toggleColorMode}
-          variant="ghost" 
-          aria-label="Toggle color mode"
-          mr="2"
-        >
-          {colorMode === 'light' ? <IoMoon size={20} /> : <LuSun size={20} />}
-        </Button>
 
         {/* create item button */}
         <IconButton
