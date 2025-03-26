@@ -34,6 +34,7 @@ return (
     <Flex justify="space-between" align="center">
       {/* MISO LOGO */}
       <Heading
+        paddingLeft="5%"
         fontWeight="normal"
         size="2xl"
         fontFamily="NanumMyeongjo"
