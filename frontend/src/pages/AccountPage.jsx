@@ -43,7 +43,6 @@ const sampleBooks = [
     condition: 'gently used',
     category: ['math'],
     status: 'selling',
-    favorite: true,
   },
   {
     id: 3,
@@ -71,7 +70,6 @@ const sampleBooks = [
     condition: 'like new',
     category: ['math', 'science'],
     status: 'selling',
-    favorite: true,
   },
 ];
 

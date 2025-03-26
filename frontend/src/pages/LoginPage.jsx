@@ -119,8 +119,8 @@ const LoginPage = () => {
                         bgColor={"rgb(221, 147, 51)"}
                         fontSize={18}
                         fontColor="black"
+                        fontWeight={"normal"}
                         borderRadius={20}
-                        padding={5}
                         textAlign={"center"}
                         w="full"
                         onClick={handleLogin}
@@ -129,11 +129,11 @@ const LoginPage = () => {
                     </Button>
 
                     <Button
-                        bgColor={"rgb(204, 85, 0)"}
+                        bgColor={"rgb(177, 177, 177)"}
                         fontSize={18}
+                        fontWeight={"normal"}
                         fontColor="white"
                         borderRadius={20}
-                        padding={5}
                         textAlign={"center"}
                         w="full"
                         onClick={handleGoogleSignIn}
