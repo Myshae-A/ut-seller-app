@@ -2,6 +2,7 @@ import {
   Box, 
   Flex,
   Text, 
+  Icon,
   Image, 
   Grid, 
   VStack, 
@@ -12,8 +13,8 @@ import {
 } from '@chakra-ui/react';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
+import { HiHeart } from "react-icons/hi"
 import ProductCard from '../components/ProductCard';
-import { StarIcon } from '@chakra-ui/icons';
 import american from '../images/american.jpg';
 import linear from '../images/linear.jpg';
 import SideSearchTab from '../components/SideBar';
@@ -50,79 +51,103 @@ const initialBooks = [
 ];
 
 const BookCard = ({ book, onToggleFavorite }) => {
-  return (    
+  return (
+    <Box 
+      overflow="hidden"
+      display="flex" 
+      p={4}
+      justifyContent={"center"}
+      flexDirection={"column"}
+      alignItems="center" 
+    >
       <Box 
-        borderWidth="1px" 
+        width="100%" 
+        position="relative" 
+        aspectRatio={1} 
         overflow="hidden" 
-        position="relative"
-        height="100%"
-        bg="white"
-        boxShadow="sm"
-        transition="transform 0.2s"
-        _hover={{ transform: 'scale(1.02)' }}
       >
-        <Box height="180px" bg="gray.100" position="relative">
-          <Image 
-            src={book.image} 
-            alt={book.title}
-            fallbackSrc="https://via.placeholder.com/150"
-            objectFit="cover"
-            width="100%"
-            height="100%"
-          />
-          <IconButton
-            aria-label="Add to favorites"
-            icon={<StarIcon />}
-            size="sm"
-            position="absolute"
-            top="2"
-            right="2"
-            borderRadius="full"
-            colorScheme={book.favorite ? "red" : "gray"}
-            onClick={() => onToggleFavorite(book.id)}
-          />
-        </Box>
-        
-        <Box p="3">
-          <Text 
-            fontWeight="semibold" 
-            fontSize="sm" 
-            noOfLines={2}
-            mb="2"
+        <Image 
+          borderRadius={15}
+          src={book.image}
+          alt={book.title}
+          objectFit="cover"
+          width="full"
+          height="full"
+        />
+
+        <button
+          onClick={() => onToggleFavorite(book.id)}
+          style={{
+            position: 'absolute',
+            bottom: '8px',
+            right: '8px',
+            background: 'none',
+            border: 'none',
+            cursor: 'pointer'
+          }}
+        >
+          <svg 
+            xmlns="http://www.w3.org/2000/svg" 
+            width="24" 
+            height="24" 
+            viewBox="0 0 24 24" 
+            fill={book.favorite ? 'red' : 'none'}
+            stroke="currentColor"
+            strokeWidth="3"
           >
-            {book.title}
-          </Text>
-          
-          <HStack mb="2" flexWrap="wrap" spacing="1">
-            {book.categories.map((category, idx) => (
-              <Badge 
-                key={idx} 
-                colorScheme="gray" 
-                fontSize="xx-small"
-                px="1"
-              >
-                {category}
-              </Badge>
-            ))}
-          </HStack>
-          
-          <Badge 
-            colorScheme="blue" 
-            fontSize="xx-small"
-            mb="2"
-          >
-            {book.condition}
-          </Badge>
-          
-          <Text 
-            fontWeight="bold" 
-            color="gray.700"
-            fontSize="sm"
-          >
-            {book.price}
-          </Text>
-        </Box>
+            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+          </svg>
+        </button>
       </Box>
+      
+      <Box p={3} position="relative">
+        <Text 
+          fontWeight="bold" 
+          fontSize="sm" 
+          noOfLines={1} 
+          mb={2}
+        >
+          {book.title}
+        </Text>
+        
+        <Flex gap={2} mb={2} flexWrap="wrap">
+          {book.categories && book.categories.map((cat, idx) => (
+            <Badge 
+              key={idx} 
+              bgColor={"rgba(221, 147, 51, 0.47)"}
+              borderRadius={30}
+              p={1}
+              px={2}
+              fontSize="x-small"
+              fontWeight={"semibold"}
+            >
+              {cat}
+            </Badge>
+          ))}
+          
+          {book.condition && (
+            <Badge 
+              bgColor={"rgba(221, 147, 51, 0.47)"}
+              borderRadius={30}
+              p={1}
+              px={2}
+              fontSize="x-small"
+              fontWeight={"semibold"}
+            >
+              {book.condition}
+            </Badge>
+          )}
+        </Flex>
+        
+        <Text 
+          fontWeight="bold" 
+          fontSize="sm" 
+          color="gray.700"
+        >
+          {book.price}
+        </Text>
+      </Box>
+    </Box>
   );
 };
 
