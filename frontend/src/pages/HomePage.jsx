@@ -7,7 +7,7 @@ import {
   Grid, 
   VStack, 
   HStack, 
-  Badge, 
+  Badge,
   IconButton,
   Button,
   Modal, 
@@ -35,6 +35,8 @@ const initialBooks = [
     image: american,
     categories: ['history', 'visual and performing arts'],
     condition: 'like new',
+    catalogue: 'M 340L',
+    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
     price: '$27.50',
     favorite: false
   },
@@ -44,6 +46,8 @@ const initialBooks = [
     image: linear,
     categories: ['math'],
     condition: 'gently used',
+    catalogue: 'M 340L',
+    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
     price: '$60.00',
     favorite: false
   },
@@ -53,6 +57,8 @@ const initialBooks = [
     image: american,
     categories: ['math', 'brand new'],
     condition: 'brand new',
+    catalogue: 'M 340L',
+    description: 'hello! :)',
     price: '$52.20',
     favorite: false
   },
@@ -169,14 +175,14 @@ const BookCard = ({ book, onToggleFavorite }) => {
         <ModalOverlay />
         <ModalContent 
           borderRadius={15} 
-          border="px solid"
+          border="2px solid"
           borderColor="gray.600"
-          bgColor="rgb(210, 210, 210)"
+          bgColor="rgb(226, 225, 225)"
           p={5}
         >
-          <Flex p={5}>
+          <Flex direction={{ base: 'row' }} p={5}>
             <Box 
-              w={{ base: '100%', md: '40%' }} 
+              w={{ base: '40%'}} 
               borderRadius="md"
               pb={4}
               position="relative"
@@ -199,15 +205,19 @@ const BookCard = ({ book, onToggleFavorite }) => {
               height="auto" 
               alignSelf="stretch" 
             />
-
+            <Box
+              w={{ base: '60%'}} 
+            >
             <ModalCloseButton />
             <ModalBody>
               <Flex
                 flexDirection="column"
-                justifyContent="space-between"
+                //justifyContent="space-between"
                 h="100%">
-              <ModalHeader>{book.title}</ModalHeader>
+              <Text fontSize="xl" mb={2}>{book.title}</Text>
                 
+              <Text fontWeight="bold" mb={2}>Price: {book.price}</Text>
+
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
                     {book.categories && book.categories.map((cat, idx) => (
@@ -236,13 +246,74 @@ const BookCard = ({ book, onToggleFavorite }) => {
                       </Badge>
                     )}
                   </Flex>
-                  <Text fontWeight="bold" mb={2}>Price: {book.price}</Text>
-                  {book.description && (
-                    <Text>{book.description}</Text>
-                  )}
                 </Box>
+                <Button
+                  bgColor={"rgb(221, 147, 51)"}
+                  borderRadius={20}
+                >
+                  {/*no link functionality yet*/}
+                  <Link to={`/account`} style={{ fontWeight:'lighter' }}>
+                    Make an Offer
+                  </Link>
+                </Button>
+
+                <Box mt={4}>
+                  <Flex gap={2} mb={2} align="center" direction="row" justify="space-evenly">
+                    <IconButton
+                      icon = {<svg 
+                        xmlns="http://www.w3.org/2000/svg" 
+                        width="15" 
+                        viewBox="0 0 24 24" 
+                        fill={book.favorite ? 'red' : 'none'}
+                        stroke="currentColor"
+                        strokeWidth="2"
+                      >
+                        <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+                      </svg>}
+                      bgColor="rgba(221, 147, 51, 0.47)"
+                      borderRadius={20}
+                      p={5}
+                    ></IconButton>
+                    <IconButton
+                      icon={
+                        <svg
+                          xmlns="http://www.w3.org/2000/svg"
+                          width="15"
+                          viewBox="0 0 24 24"
+                          fill="none"
+                          stroke="currentColor"
+                          strokeWidth="2"
+                          strokeLinecap="round"
+                          strokeLinejoin="round"
+                        >
+                          <circle cx="18" cy="5" r="3" />
+                          <circle cx="6" cy="12" r="3" />
+                          <circle cx="18" cy="19" r="3" />
+                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                        </svg>
+                      }
+                      bgColor="rgba(221, 147, 51, 0.47)"
+                      borderRadius={20}
+                      p={5}
+                    />
+                   <Button
+                      bgColor="rgba(221, 147, 51, 0.47)"
+                      borderRadius={20}
+                      p={1}
+                      px={5}
+                      fontSize="sm"
+                      fontWeight="semibold"
+                    >...</Button>
+                  </Flex>
+                </Box>
+                    
+                <Text  mb={2}>{book.catalogue}</Text>
+                <Text  mb={2}>{book.description}</Text>
+
               </Flex>
             </ModalBody>
+            </Box>
           </Flex>
         </ModalContent>
       </Modal>
