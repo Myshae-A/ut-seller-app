@@ -9,7 +9,15 @@ import {
   HStack, 
   Badge, 
   IconButton,
-  Button 
+  Button,
+  Modal, 
+  Divider,
+  ModalOverlay, 
+  ModalContent, 
+  ModalHeader, 
+  ModalBody, 
+  ModalCloseButton,
+  useDisclosure 
 } from '@chakra-ui/react';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -51,103 +59,194 @@ const initialBooks = [
 ];
 
 const BookCard = ({ book, onToggleFavorite }) => {
-  return (
-    <Box 
-      overflow="hidden"
-      display="flex" 
-      p={4}
-      justifyContent={"center"}
-      flexDirection={"column"}
-      alignItems="center" 
-    >
-      <Box 
-        width="100%" 
-        position="relative" 
-        aspectRatio={1} 
-        overflow="hidden" 
-      >
-        <Image 
-          borderRadius={15}
-          src={book.image}
-          alt={book.title}
-          objectFit="cover"
-          width="full"
-          height="full"
-        />
+  const { isOpen, onOpen, onClose } = useDisclosure();
 
-        <button
-          onClick={() => onToggleFavorite(book.id)}
-          style={{
-            position: 'absolute',
-            bottom: '8px',
-            right: '8px',
-            background: 'none',
-            border: 'none',
-            cursor: 'pointer'
-          }}
+  return (
+    <>
+      <Box 
+        overflow="hidden"
+        display="flex" 
+        p={4}
+        justifyContent="center"
+        flexDirection="column"
+        alignItems="center"
+        cursor="pointer"
+        onClick={onOpen}
+      >
+        <Box 
+          width="100%" 
+          position="relative" 
+          aspectRatio={1} 
+          overflow="hidden" 
         >
-          <svg 
-            xmlns="http://www.w3.org/2000/svg" 
-            width="24" 
-            height="24" 
-            viewBox="0 0 24 24" 
-            fill={book.favorite ? 'red' : 'none'}
-            stroke="currentColor"
-            strokeWidth="3"
+          <Image 
+            borderRadius={15}
+            src={book.image}
+            alt={book.title}
+            objectFit="cover"
+            width="full"
+            height="full"
+          />
+
+          <button
+            onClick={(e) => {
+              e.stopPropagation();
+              onToggleFavorite(book.id);
+            }}
+            style={{
+              position: 'absolute',
+              bottom: '8px',
+              right: '8px',
+              background: 'none',
+              border: 'none',
+              cursor: 'pointer'
+            }}
           >
-            <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
-          </svg>
-        </button>
-      </Box>
-      
-      <Box p={3} position="relative">
-        <Text 
-          fontWeight="bold" 
-          fontSize="sm" 
-          noOfLines={1} 
-          mb={2}
-        >
-          {book.title}
-        </Text>
-        
-        <Flex gap={2} mb={2} flexWrap="wrap">
-          {book.categories && book.categories.map((cat, idx) => (
-            <Badge 
-              key={idx} 
-              bgColor={"rgba(221, 147, 51, 0.47)"}
-              borderRadius={30}
-              p={1}
-              px={2}
-              fontSize="x-small"
-              fontWeight={"semibold"}
+            <svg 
+              xmlns="http://www.w3.org/2000/svg" 
+              width="24" 
+              height="24" 
+              viewBox="0 0 24 24" 
+              fill={book.favorite ? 'red' : 'none'}
+              stroke="currentColor"
+              strokeWidth="3"
             >
-              {cat}
-            </Badge>
-          ))}
+              <path d="M12 21.35l-1.45-1.32C5.4 15.36 2 12.28 2 8.5 2 5.42 4.42 3 7.5 3c1.74 0 3.41.81 4.5 2.09C13.09 3.81 14.76 3 16.5 3 19.58 3 22 5.42 22 8.5c0 3.78-3.4 6.86-8.55 11.54L12 21.35z"/>
+            </svg>
+          </button>
+        </Box>
+        
+        <Box p={3} position="relative">
+          <Text 
+            fontWeight="bold" 
+            fontSize="sm" 
+            noOfLines={1} 
+            mb={2}
+          >
+            {book.title}
+          </Text>
           
-          {book.condition && (
-            <Badge 
-              bgColor={"rgba(221, 147, 51, 0.47)"}
-              borderRadius={30}
-              p={1}
-              px={2}
-              fontSize="x-small"
-              fontWeight={"semibold"}
-            >
-              {book.condition}
-            </Badge>
-          )}
-        </Flex>
-        
-        <Text 
-          fontWeight="bold" 
-          fontSize="sm" 
-          color="gray.700"
-        >
-          {book.price}
-        </Text>
+          <Flex gap={2} mb={2} flexWrap="wrap">
+            {book.categories && book.categories.map((cat, idx) => (
+              <Badge 
+                key={idx} 
+                bgColor="rgba(221, 147, 51, 0.47)"
+                borderRadius={30}
+                p={1}
+                px={2}
+                fontSize="x-small"
+                fontWeight="semibold"
+              >
+                {cat}
+              </Badge>
+            ))}
+            
+            {book.condition && (
+              <Badge 
+                bgColor="rgba(221, 147, 51, 0.47)"
+                borderRadius={30}
+                p={1}
+                px={2}
+                fontSize="x-small"
+                fontWeight="semibold"
+              >
+                {book.condition}
+              </Badge>
+            )}
+          </Flex>
+          
+          <Text 
+            fontWeight="bold" 
+            fontSize="sm" 
+            color="gray.700"
+          >
+            {book.price}
+          </Text>
+        </Box>
       </Box>
-    </Box>
+
+      <Modal isOpen={isOpen} onClose={onClose} size="2xl" >
+        <ModalOverlay />
+        <ModalContent 
+          borderRadius={15} 
+          border="px solid"
+          borderColor="gray.600"
+          bgColor="rgb(210, 210, 210)"
+          p={5}
+        >
+          <Flex p={5}>
+            <Box 
+              w={{ base: '100%', md: '40%' }} 
+              borderRadius="md"
+              pb={4}
+              position="relative"
+            >
+              <Image 
+                  src={book.image}
+                  alt={book.title}
+                  objectFit="cover"
+                  width="200px"
+                  height="300px"
+                  borderRadius="10px"
+                  mr={4}
+                />
+            </Box>
+
+            <Divider 
+              orientation="vertical" 
+              borderColor="gray.600" 
+              border="1px solid"
+              height="auto" 
+              alignSelf="stretch" 
+            />
+
+            <ModalCloseButton />
+            <ModalBody>
+              <Flex
+                flexDirection="column"
+                justifyContent="space-between"
+                h="100%">
+              <ModalHeader>{book.title}</ModalHeader>
+                
+                <Box>
+                  <Flex gap={2} mb={2} flexWrap="wrap">
+                    {book.categories && book.categories.map((cat, idx) => (
+                      <Badge 
+                        key={idx} 
+                        bgColor="rgba(221, 147, 51, 0.47)"
+                        borderRadius={30}
+                        p={1}
+                        px={2}
+                        fontSize="x-small"
+                        fontWeight="semibold"
+                      >
+                        {cat}
+                      </Badge>
+                    ))}
+                    {book.condition && (
+                      <Badge 
+                        bgColor="rgba(221, 147, 51, 0.47)"
+                        borderRadius={30}
+                        p={1}
+                        px={2}
+                        fontSize="x-small"
+                        fontWeight="semibold"
+                      >
+                        {book.condition}
+                      </Badge>
+                    )}
+                  </Flex>
+                  <Text fontWeight="bold" mb={2}>Price: {book.price}</Text>
+                  {book.description && (
+                    <Text>{book.description}</Text>
+                  )}
+                </Box>
+              </Flex>
+            </ModalBody>
+          </Flex>
+        </ModalContent>
+      </Modal>
+    </>
   );
 };
 
