@@ -2,6 +2,8 @@ import React, { useState } from 'react';
 import american from '../images/american.jpg';
 import linear from '../images/linear.jpg';
 import Navbar from '../components/Navbar'
+import { useAuth } from '../contexts/AuthContext'; // Import useAuth
+import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
   Box,
   Container,
@@ -355,7 +357,9 @@ const BookCard = ({ book, onToggleFavorite }) => {
 
 const AccountPage = () => {
     const [books, setBooks] = useState(sampleBooks);
-  
+    const navigate = useNavigate();
+    const { logout } = useAuth();
+
     // Function to toggle favorite status
     const handleToggleFavorite = (bookId) => {
       setBooks((prevBooks) =>
@@ -365,6 +369,16 @@ const AccountPage = () => {
             : book
         )
       );
+    };
+
+    // Function to handle logout
+    const handleLogout = async () => {
+      try {
+        await logout(); // Call the logout function
+        navigate('/login'); // Redirect to the login page
+      } catch (error) {
+        console.error('Error logging out:', error);
+      }
     };
   
     const sellingBooks = books.filter(book => book.status === 'selling');
@@ -385,6 +399,16 @@ const AccountPage = () => {
                             <Text fontSize="xl">Bevo Longhorn</Text>
                             <Text color="gray.600" fontSize="md">BevoLonghorn@utexas.edu</Text>
                         </Box>
+
+                        {/* Logout Button */}
+                        <Button
+                          bgColor="red.500"
+                          color="white"
+                          onClick={handleLogout}
+                          _hover={{ bgColor: 'red.600' }}
+                        >
+                          Log Out
+                        </Button>
                     </Flex>
                 </Container>
 
@@ -396,6 +420,8 @@ const AccountPage = () => {
                         <Tab>All</Tab>
                         <Tab>Selling</Tab>
                         <Tab>Sold</Tab>
+                        <Tab>Requesting</Tab>
+                        <Tab>Bought</Tab>
                         <Tab>Saved</Tab>
                     </TabList>
         
@@ -430,6 +456,7 @@ const AccountPage = () => {
                             }
                         </SimpleGrid>
                         </TabPanel>
+                        
         
                         {/* Saved Tab */}
                         <TabPanel>
