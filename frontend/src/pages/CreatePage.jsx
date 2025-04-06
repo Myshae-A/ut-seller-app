@@ -20,10 +20,16 @@ import { Box,
 } from '@chakra-ui/react';
 import { CloseIcon, AddIcon } from '@chakra-ui/icons';
 import React, { useState } from 'react';
+import { uploadImage } from '../services/uploadImage'; // Assuming you have a function to upload images to Firebase Storage
 import { useNavigate } from 'react-router-dom';
-import { addProduct, uploadImage } from '../services/api'; // uploadImage
+import { addProductToGlobal, addProductToUser } from '../services/api'; // uploadImage
+import { useAuth } from '../contexts/AuthContext'; // Assuming you have an AuthContext to get the current user
 
 const CreatePage = () => {
+
+  // Access current user form AuthContext
+  const { currentUser } = useAuth(); 
+
   // Expanded product state to include all fields
   const [newProduct, setNewProduct] = useState({
     name: "",
@@ -34,9 +40,11 @@ const CreatePage = () => {
     condition: "",
     catalogNumber: "",
     description: "",
+    status: ""
   });
   
   // State for handling multiple images
+  // const [imageFile, setImageFile] = useState(null);
   const [imageFiles, setImageFiles] = useState(Array(4).fill(null));
   const [imageUrls, setImageUrls] = useState(Array(4).fill(""));
   const [isUploading, setIsUploading] = useState(false);
@@ -53,6 +61,10 @@ const CreatePage = () => {
       [name]: value
     }));
   };
+
+  // const handleImageChange = (e) => {
+  //   setImageFile(e.target.files[0]);
+  // };
 
   // Handle image selection
   const handleImageSelect = (index) => (e) => {
@@ -96,7 +108,7 @@ const CreatePage = () => {
           // await uploadBytes(imageRef, imageFile);
           
           // Get the download URL
-          const downloadUrl = await uploadImage(imageFile);
+          const downloadUrl = await uploadImage(imageFile, currentUser.uid, "products");
           uploadedUrls.push(downloadUrl);
         } catch (error) {
           console.error("Error uploading image:", error);
@@ -146,12 +158,26 @@ const CreatePage = () => {
         price: parseFloat(newProduct.price),
         image: uploadedImageUrls[0], // Main image is the first one
         additionalImages: uploadedImageUrls.slice(1).filter(url => url), // Additional images
-        createdAt: new Date()
+        createdAt: new Date().toUTCString(),
+        beenSold: false,
+        userPosted: currentUser.uid,
+        usersRequested: [],
+        status: "posted"
       };
       
-      // Add the product to the database
-      await addProduct(formattedProduct);
-      
+      // Add the product to the global database of all products
+      const updatedProduct = await addProductToGlobal(formattedProduct);
+      // const productId = await addProductToGlobal(formattedProduct);
+
+      // formattedProduct.id = productId; // Add the product ID to the formatted product
+
+      // console.log("Generated Product ID: ", productId); // WORKS!!!
+
+      const userId = currentUser.uid; // Assuming you have a way to get the current user's ID
+      // console.log("user id: ", userId);
+      // Add the same product to the user's individual posted products
+      await addProductToUser(userId, updatedProduct);
+
       toast({
         title: "Success",
         description: "Book listed successfully!",
@@ -170,6 +196,7 @@ const CreatePage = () => {
         condition: "",
         catalogNumber: "",
         description: "",
+        status: ""
       });
       setImageFiles(Array(4).fill(null));
       setImageUrls(Array(4).fill(""));
@@ -190,7 +217,7 @@ const CreatePage = () => {
   };
 
   // Hidden file input elements for image uploads
-  const fileInputRefs = Array(4).fill().map(() => React.createRef());
+  // const fileInputRefs = Array(4).fill().map(() => React.createRef());
 
   return (
     <Box maxW="1000px" mx="auto" p={4} bg="white">
@@ -221,7 +248,7 @@ const CreatePage = () => {
           pb={4}
         >
           <Grid templateColumns="repeat(2, 1fr)" gap={4} p={4}>
-            {imageFiles.map((img, idx) => (
+            {imageFiles.map((_, idx) => (
               <GridItem key={idx}>
                 <Box 
                   h="200px" 
@@ -233,13 +260,13 @@ const CreatePage = () => {
                   border="3px dashed"
                   borderColor="gray.300"
                   cursor="pointer"
-                  onClick={() => fileInputRefs[idx].current?.click()}
+                  onClick={() => document.getElementById(`file-input-${idx}`).click()}
                   overflow="hidden"
                 >
                   {imageUrls[idx] ? (
                     <Image 
-                      src={imageUrls[idx]} 
-                      alt={`Book image ${idx + 1}`} 
+                      src={imageUrls[idx]} alt={`Preview ${idx}`} boxSize="100%"
+                      // alt={`Book image ${idx + 1}`} 
                       objectFit="cover"
                       w="100%"
                       h="100%"
@@ -250,9 +277,10 @@ const CreatePage = () => {
                       <Text fontSize="xs" color="gray.500">add an image</Text>
                     </VStack>
                   )}
-                  <input
+                  <Input
+                    id={`file-input-${idx}`}
                     type="file"
-                    ref={fileInputRefs[idx]}
+                    // ref={fileInputRefs[idx]}
                     accept="image/*"
                     style={{ display: 'none' }}
                     onChange={handleImageSelect(idx)}

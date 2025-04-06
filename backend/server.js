@@ -44,12 +44,58 @@ app.get('/api/products', async (req, res) => {
 
 // POST: Add a new product
 app.post('/api/products', async (req, res) => {
+
     try {
+        // dang, so this is the most clever thing I think co-pilot did
+        // basicallly, it allows you to get the auto-generated ID of a
+        // newly created empty document, then you add that id to the original data
+        // then you save that updated data to the empty, newly created document
         const product = req.body;
-        const productRef = await db.collection('products').add(product);
-        res.status(201).json({ success: true, id: productRef.id });
+
+        // Generate a new document reference with a unique ID
+        const productRef = db.collection('products').doc();
+        const productId = productRef.id; // Get the generated ID
+
+        // Add the ID to the product data
+        product.id = productId;
+
+        // Save the product to the database
+        await productRef.set(product);
+
+        res.status(200).json({ success: true, product});
     } catch (error) {
         console.error("Error adding product:", error);
+        res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.post('/api/users/:userId/productsPosted', async (req, res) => {
+    // const { userId } = req.params; // Extract userId from request parameters
+    // const { formattedProduct } = req.body; // Extract formattedProduct from request body
+    // const { userId } = req.params; // Extract userId from the URL
+    // const product = req.body; // Extract the product from the request body
+
+
+    // console.log("adding product to the user, test");
+    try {
+        const userId = req.params.userId;
+        // console.log("userId: ", userId);
+        const productData = req.body; // Use the whole request body
+        // console.log("productData: ", productData);
+        const userRef = db.collection('users').doc(userId);
+
+
+        // console.log("made it before userRef")
+        // const userId = req.params.userId;
+        // const userRef = db.collection('users').doc(userId);
+        // console.log("Made it here bruh"); // YES IT WORKS NOW!!!! T_T glory to God!
+        await userRef.update({
+            productsPosted: admin.firestore.FieldValue.arrayUnion(productData)
+        });
+        
+        res.status(200).json({ success: true, message: 'Posted products pending updated successfully' });
+    } catch (error) {
+        console.error("Error updating posted products:", error);
         res.status(500).json({ success: false, message: error.message });
     }
 });
@@ -57,12 +103,14 @@ app.post('/api/products', async (req, res) => {
 // POST: Upload an image
 app.post('/api/upload-image', upload.single('image'), async (req, res) => {
     try {
-        const imageFile = req.file;
-        const imagePath = `products/${Date.now()}-${imageFile.originalname}`;
-        const imageRef = ref(storage, imagePath);
-        await uploadBytes(imageRef, imageFile.buffer);
-        const downloadUrl = await getDownloadURL(imageRef);
-        res.status(200).json({ success: true, url: downloadUrl });
+        // const imageFile = req.file;
+        // const imagePath = `products/${Date.now()}-${imageFile.originalname}`;
+        // const imageRef = ref(storage, imagePath);
+        // await uploadBytes(imageRef, imageFile.buffer);
+        // const downloadUrl = await getDownloadURL(imageRef);
+        // res.status(200).json({ success: true, url: downloadUrl });
+        console.log("uploading image... blank for now");
+        res.status(200).json({ success: true, message: 'Image uploaded successfully' });
     } catch (error) {
         console.error("Error uploading image:", error);
         res.status(500).json({ success: false, message: error.message });
@@ -113,14 +161,22 @@ app.post('/api/register', async (req, res) => {
       //   console.error("Error sending email verification:", error);
       // });
 
+        /* old way of handling products buy & sell:
+            postedProductsPending: [],
+            postedProductsConfirmed: [],
+            requestedProductsPending: [],
+            requestedProductsConfirmed: [],
+        */
+
       // Create user document in Firestore -- works
       await db.collection('users').doc(user.uid).set({
           email: user.email,
+          displayName: user.email, // Use email as display name
           createdAt: new Date(),
-          postedProductsPending: [],
-          postedProductsConfirmed: [],
-          requestedProductsPending: [],
-          requestedProductsConfirmed: [],
+          productsBought: [],
+          productsSold: [],
+          productsPosted: [],
+          productsRequested: [],
           emailVerified: false // Start as unverified (if logging in without google auth)
       });
 
@@ -148,13 +204,14 @@ app.post('/api/register-google', async (req, res) => {
         // console.log("User document does not exist in Firestore");
         // Create user document in Firestore
         await db.collection('users').doc(uid).set({
+            id: user.uid,
             email: user.email,
             displayName: user.displayName,
             createdAt: new Date(),
-            postedProductsPending: [],
-            postedProductsConfirmed: [],
-            requestedProductsPending: [],
-            requestedProductsConfirmed: [],
+            productsBought: [],
+            productsSold: [],
+            productsPosted: [],
+            productsRequested: [],
             emailVerified: true // Google users are verified by default
         });
     }
@@ -164,6 +221,26 @@ app.post('/api/register-google', async (req, res) => {
         res.status(500).json({ success: false, message: error.message });
     }
 });
+
+// Endpoint to update the user's profile image
+app.put("/api/users/:userId/profile-image", async (req, res) => {
+    const { userId } = req.params;
+    const { profileImage } = req.body;
+  
+    if (!profileImage) {
+      return res.status(400).json({ success: false, message: "Profile image URL is required." });
+    }
+  
+    try {
+      const userRef = db.collection("users").doc(userId);
+      await userRef.update({ profileImage });
+  
+      res.status(200).json({ success: true, message: "Profile image updated successfully." });
+    } catch (error) {
+      console.error("Error updating profile image:", error);
+      res.status(500).json({ success: false, message: "Failed to update profile image." });
+    }
+  });
 
 const PORT = process.env.PORT || 5000;
 

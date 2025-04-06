@@ -41,10 +41,8 @@ return (
         onClick={handleHomeNavigation}
         cursor="pointer" 
       >
-        MISO
+        MISO Marketplace
       </Heading>
-
-      
 
       <Flex align="center">
 

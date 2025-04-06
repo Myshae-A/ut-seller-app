@@ -4,11 +4,15 @@ import {
     createUserWithEmailAndPassword,
     signInWithEmailAndPassword,
     onAuthStateChanged,
+    signInWithPopup,
+    GoogleAuthProvider,
     signOut,
     
 } from "firebase/auth";
 import { auth } from '../services/firebase-client';
 import { registerUser } from '../services/api';
+
+import { registerGoogleUser } from '../services/api';
 
 // Creating a context for authentication. Contexts provide a way to pass data through 
 // the component tree without having to pass props down manually at every level.
@@ -103,6 +107,37 @@ export function AuthProvider({ children }) {
         }
     };
 
+    const loginWithGoogle = async () => {
+        try {
+            const provider = new GoogleAuthProvider();
+            const result = await signInWithPopup(auth, provider);
+            const user = result.user;
+
+            // Check if email domain is utexas.edu
+            if (!user.email.endsWith('@utexas.edu')) {
+                // Sign out the user if domain doesn't match
+                await signOut(auth);
+                setLoginError('Only @utexas.edu domain allowed');
+                return { success: false, message: 'Only @utexas.edu domain allowed' };
+            }
+
+            setCurrentUser(user);
+            
+            // Call backend API to create user document
+            const { success, message } = await registerGoogleUser(user.uid);
+            if (!success) {
+                throw new Error(message);
+            }
+            
+            navigate("/home");
+            return { success: true, message: 'Google signin successful.' };
+        } catch (error) {
+            console.error("Google Sign-In error:", error);
+            setLoginError(error.message);
+            return { success: false, message: error.message };
+        }
+    }
+
     // An object containing our state and functions related to authentication.
     // By using this context, child components can easily access and use these without prop drilling.
     const value = {
@@ -111,6 +146,7 @@ export function AuthProvider({ children }) {
         logout,
         register,
         loginError,
+        loginWithGoogle,
     };
 
     // The AuthProvider component uses the AuthContext.Provider to wrap its children.

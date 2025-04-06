@@ -1,4 +1,7 @@
-const API_URL = 'https://ut-seller-app-backend.vercel.app/api'; // Update with your backend URL
+// Update with your backend URL, make sure to swtich to this for prouction
+// const API_URL = 'https://ut-seller-app-backend.vercel.app/api'; 
+
+const API_URL = 'http://localhost:5000/api'; // Update with your backend URL, for testing locally
 
 export const fetchProducts = async () => {
     try {
@@ -16,7 +19,7 @@ export const fetchProducts = async () => {
     }
 };
 
-export const addProduct = async (product) => {
+export const addProductToGlobal = async (product) => {
     try {
         const response = await fetch(`${API_URL}/products`, {
             method: 'POST',
@@ -26,9 +29,31 @@ export const addProduct = async (product) => {
             body: JSON.stringify(product),
         });
         const data = await response.json();
-        return data;
+        return data.product; // big assumption here that backend returns the id of the new product
     } catch (error) {
         console.error("Error adding product:", error);
+        throw error;
+    }
+};
+
+export const addProductToUser = async (userId, product) => {
+
+    
+    // console.log("once again, verifiying userId: ", userId);
+    // console.log("Verifying product in frontend:", product);
+
+    try {
+        const response = await fetch(`${API_URL}/users/${userId}/productsPosted`, {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+            },
+            body: JSON.stringify(product),
+        });
+        const data = await response.json();
+        return data;
+    } catch (error) {
+        console.error("Error adding product to user:", error);
         throw error;
     }
 };
@@ -117,5 +142,28 @@ export const registerGoogleUser = async (uid) => {
         return { success: false, message: error.message };
     }
 };
+
+export const updateUserProfile = async (userId, profileImage) => {
+    try {
+        const response = await fetch(`${API_URL}/users/${userId}/profile-image`, {
+        method: "PUT",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ profileImage }),
+        });
+
+        const data = await response.json();
+        if (!response.ok) {
+        throw new Error(data.message || "Failed to update profile image.");
+        }
+
+        return data;
+    } catch (error) {
+        console.error("Error updating user profile:", error);
+        throw error;
+    }
+};
+
 
 // Other API calls...

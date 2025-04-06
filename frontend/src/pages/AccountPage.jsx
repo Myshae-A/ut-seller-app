@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import american from '../images/american.jpg';
-import linear from '../images/linear.jpg';
+import React, { useState, useEffect } from 'react';
+// import american from '../images/american.jpg';
+// import linear from '../images/linear.jpg';
 import Navbar from '../components/Navbar'
 import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
@@ -10,6 +10,7 @@ import {
   Flex,
   Text,
   Image,
+  Input,
   Icon,
   Avatar,
   IconButton,
@@ -29,68 +30,78 @@ import {
   ModalHeader, 
   ModalBody, 
   ModalCloseButton,
-  useDisclosure 
+  useDisclosure,
+  useToast
 } from '@chakra-ui/react';
 import { AddIcon, StarIcon } from '@chakra-ui/icons';
+import { fetchProducts } from '../services/api';
+import { uploadProfileImage } from "../services/uploadProfileImage";
+import { updateUserProfile } from "../services/api";
+
 
 // Sample book data
-const sampleBooks = [
-  {
-    id: 1,
-    title: 'American Art and Culture: Revised First Edition by Craven',
-    image: american,
-    price: '$27.50',
-    condition: 'like new',
-    category: ['history', 'visual and performing arts'],
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    status: 'selling',
-  },
-  {
-    id: 2,
-    title: 'Linear Algebra & Its Applications 5E',
-    image: linear,
-    price: '$60.00',
-    condition: 'gently used',
-    category: ['math'],
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    status: 'selling',
-  },
-  {
-    id: 3,
-    title: 'Linear Algebra Done Right (Undergraduate - Hardcover, by Axler',
-    image: american,
-    price: '$59.20',
-    condition: 'brand new',
-    category: ['math'],
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    status: 'selling',
-  },
-  {
-    id: 4,
-    title: "Gardner's Art through the Ages: A Global History - Hardcover",
-    image: linear,
-    price: '$64.99',
-    condition: 'like new',
-    category: ['visual and performing arts', 'history'],
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    status: 'selling',
-  },
-  {
-    id: 5,
-    title: 'Diagnostic and Statistical Manual of Mental Disorders',
-    image: american,
-    price: '$70.99',
-    condition: 'like new',
-    category: ['math', 'science'],
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    status: 'selling',
-  },
-];
+// const sampleBooks = [
+//   {
+//     id: 1,
+//     title: 'American Art and Culture: Revised First Edition by Craven',
+//     image: american,
+//     price: '$27.50',
+//     condition: 'like new',
+//     category: ['history', 'visual and performing arts'],
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     status: 'selling',
+//     saved: false,
+//   },
+//   {
+//     id: 2,
+//     title: 'Linear Algebra & Its Applications 5E',
+//     image: linear,
+//     price: '$60.00',
+//     condition: 'gently used',
+//     category: ['math'],
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     status: 'selling',
+//     saved: false,
+//   },
+//   {
+//     id: 3,
+//     title: 'Linear Algebra Done Right (Undergraduate - Hardcover, by Axler',
+//     image: american,
+//     price: '$59.20',
+//     condition: 'brand new',
+//     category: ['math'],
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     status: 'selling',
+//     saved: false,
+//   },
+//   {
+//     id: 4,
+//     title: "Gardner's Art through the Ages: A Global History - Hardcover",
+//     image: linear,
+//     price: '$64.99',
+//     condition: 'like new',
+//     category: ['visual and performing arts', 'history'],
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     status: 'selling',
+//     saved: false,
+//   },
+//   {
+//     id: 5,
+//     title: 'Diagnostic and Statistical Manual of Mental Disorders',
+//     image: american,
+//     price: '$70.99',
+//     condition: 'like new',
+//     category: ['math', 'science'],
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     status: 'selling',
+//     saved: false,
+//   },
+// ];
 
 // individual book cards 
 //need to change modal to be differnt from home page modal. !!!
@@ -355,10 +366,82 @@ const BookCard = ({ book, onToggleFavorite }) => {
   );
 };
 
-const AccountPage = () => {
-    const [books, setBooks] = useState(sampleBooks);
+const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
+    // const [books, setBooks] = useState(sampleBooks);
+    const [books, setBooks] = useState([]); // Initialize books state
     const navigate = useNavigate();
-    const { logout } = useAuth();
+    const { logout, currentUser } = useAuth();
+    const [profileImage, setProfileImage] = useState(currentUser?.profileImage || "");
+    const toast = useToast();
+
+    // OHHH the problem is the name specifically has to be "currentUser", not just "user" !!!
+    const handleProfileImageChange = async (e) => {
+      const file = e.target.files[0];
+      if (!file) return;
+  
+      try {
+        // setIsUploading(true);
+  
+        // Upload the profile image to Firebase Storage
+        const imageUrl = await uploadProfileImage(file, currentUser.uid);
+  
+        // console.log("Uploaded image URL:", imageUrl);
+        // Update the user's profile in Firestore
+        await updateUserProfile(currentUser.uid, imageUrl);
+  
+        // Update the local state
+        setProfileImage(imageUrl);
+  
+        toast({
+          title: "Success",
+          description: "Profile image updated successfully!",
+          status: "success",
+          duration: 3000,
+          isClosable: true,
+        });
+      } catch (error) {
+        console.error("Error updating profile image:", error);
+        toast({
+          title: "Error",
+          description: "Failed to update profile image. Please try again.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+
+    // Fetch books from the backend when the component mounts
+    useEffect(() => {
+
+      // console.log("Current user:", currentUser);
+      
+      const fetchBooks = async () => {
+        try {
+
+          if (!currentUser) {
+            console.error("User is not defined");
+            return;
+          }
+          // console.log("here fetching books");
+          const data = await fetchProducts(); // Adjust the URL as needed
+          // const data = await response.json();
+
+          // console.log("here is the data: ", data);
+          // console.log("here is the user: ", data[0].userPosted);
+
+          // console.log(currentUser.uid);
+          // filter books to include only those that belong to the logged-in user
+          const userBooks = data.filter(product => product.userPosted === currentUser.uid); // Assuming each book has a userId field
+          setBooks(userBooks); // Set the fetched books to state
+          // setBooks(data); // Uncomment this line if you want to fetch all books
+
+        } catch (error) {
+          console.error('Error fetching books:', error);
+        }
+      };
+      fetchBooks();
+    }, []);
 
     // Function to toggle favorite status
     const handleToggleFavorite = (bookId) => {
@@ -371,6 +454,36 @@ const AccountPage = () => {
       );
     };
 
+    useEffect(() => { // ensures the products still load after
+      const loadBooks = async () => {
+          try {
+              // Check if products are already saved in localStorage
+              const savedBooks = localStorage.getItem('books');
+              if (savedBooks) {
+                  setBooks(JSON.parse(savedBooks)); // Load books from localStorage
+                  return;
+              }
+
+              // Fetch products from the backend
+              if (!currentUser) {
+                  console.error("User is not defined");
+                  return;
+              }
+
+              const data = await fetchProducts();
+              const userBooks = data.filter((product) => product.userPosted === currentUser.uid);
+              setBooks(userBooks);
+
+              // Save fetched books to localStorage
+              localStorage.setItem('books', JSON.stringify(userBooks));
+          } catch (error) {
+              console.error('Error fetching books:', error);
+          }
+      };
+
+      loadBooks();
+  }, [currentUser]);
+
     // Function to handle logout
     const handleLogout = async () => {
       try {
@@ -381,8 +494,10 @@ const AccountPage = () => {
       }
     };
   
-    const sellingBooks = books.filter(book => book.status === 'selling');
+    const boughtBooks = books.filter(book => book.status === 'bought');
     const soldBooks = books.filter(book => book.status === 'sold');
+    const postedBooks = books.filter(book => book.status === 'posted');
+    const requestedBooks = books.filter(book => book.status === 'requested');
     const savedBooks = books.filter(book => book.status === 'saved');
   
     return (  
@@ -392,20 +507,36 @@ const AccountPage = () => {
                 <Container maxWidth="60%" pt="6" pb="4" >
                     <Flex direction="row" align="center" gap={8} justify="flex-start">
                         <Box>
-                            <Avatar size="2xl" bg="gray.200" mb="4" />
+                          <label htmlFor="profile-image-input" >
+                            <Avatar
+                            size="2xl"
+                            src={profileImage}
+                            bg="gray.200"
+                            mb="4"
+                            cursor="pointer"
+                            />
+                          </label>
+
+                          <Input
+                            id="profile-image-input"
+                            type="file"
+                            accept="image/*"
+                            display="none" // Hides the input
+                            onChange={handleProfileImageChange}
+                          />
                         </Box>
                     
                         <Box>
-                            <Text fontSize="xl">Bevo Longhorn</Text>
-                            <Text color="gray.600" fontSize="md">BevoLonghorn@utexas.edu</Text>
+                            <Text fontSize="xl">{currentUser?.displayName || "User"}</Text>
+                            <Text color="gray.600" fontSize="md">{currentUser?.email || "No email available"}</Text>
                         </Box>
 
                         {/* Logout Button */}
                         <Button
-                          bgColor="red.500"
+                          bgColor="rgb(221, 147, 51)"
                           color="white"
                           onClick={handleLogout}
-                          _hover={{ bgColor: 'red.600' }}
+                          _hover={{ bgColor: "rgba(221, 147, 51, 0.4)" }}
                         >
                           Log Out
                         </Button>
@@ -418,10 +549,10 @@ const AccountPage = () => {
                     <Tabs variant="line" colorScheme="orange" isFitted>
                     <TabList>
                         <Tab>All</Tab>
-                        <Tab>Selling</Tab>
-                        <Tab>Sold</Tab>
-                        <Tab>Requesting</Tab>
                         <Tab>Bought</Tab>
+                        <Tab>Sold</Tab>
+                        <Tab>Posted</Tab>
+                        <Tab>Requested</Tab>
                         <Tab>Saved</Tab>
                     </TabList>
         
@@ -429,18 +560,25 @@ const AccountPage = () => {
                         {/* All Tab */}
                         <TabPanel>
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
-                            {books.map((book) => (
+                            {books.length > 0 ? books.map((book) => (
                             <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
-                            ))}
+                            ))
+                            :
+                            <Text textAlign="center" color="gray.500" width="200%">No items to display</Text>
+                          }
                         </SimpleGrid>
                         </TabPanel>
-        
-                        {/* Selling Tab */}
+
+                        {/* Bought Tab */}
                         <TabPanel>
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
-                            {sellingBooks.map((book) => (
-                            <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
-                            ))}
+                            {boughtBooks.length > 0 ?
+                            boughtBooks.map((book) => (
+                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                            ))
+                            :
+                            <Text textAlign="center" color="gray.500" width="200%">No bought items to display</Text>
+                            }
                         </SimpleGrid>
                         </TabPanel>
         
@@ -452,11 +590,36 @@ const AccountPage = () => {
                                 <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
                             ))
                             :
-                            <Text textAlign="center" color="gray.500" width="100%">No sold items to display</Text>
+                            <Text textAlign="center" color="gray.500" width="200%">No sold items to display</Text>
                             }
                         </SimpleGrid>
                         </TabPanel>
-                        
+
+                        {/* Posted Tab */}
+                        <TabPanel>
+                        <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
+                            {postedBooks.length > 0 ?
+                            postedBooks.map((book) => (
+                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                            ))
+                            :
+                            <Text textAlign="center" color="gray.500" width="200%">No posted items to display</Text>
+                            }
+                        </SimpleGrid>
+                        </TabPanel>
+
+                        {/* Requested Tab */}
+                        <TabPanel>
+                        <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
+                            {requestedBooks.length > 0 ?
+                            requestedBooks.map((book) => (
+                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                            ))
+                            :
+                            <Text textAlign="center" color="gray.500" width="200%">No requested items to display</Text>
+                            }
+                        </SimpleGrid>
+                        </TabPanel>                        
         
                         {/* Saved Tab */}
                         <TabPanel>
@@ -466,10 +629,11 @@ const AccountPage = () => {
                                 <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
                             ))
                             :
-                            <Text textAlign="center" color="gray.500" width="100%">No saved items to display</Text>
+                            <Text textAlign="center" color="gray.500" width="200%">No saved items to display</Text>
                             }
                         </SimpleGrid>
                         </TabPanel>
+
                     </TabPanels>
                     </Tabs>
                 </Container>

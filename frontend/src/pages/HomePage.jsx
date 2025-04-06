@@ -17,52 +17,66 @@ import {
   ModalHeader, 
   ModalBody, 
   ModalCloseButton,
-  useDisclosure 
+  useDisclosure,
+  useToast
 } from '@chakra-ui/react';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { HiHeart } from "react-icons/hi"
 import ProductCard from '../components/ProductCard';
-import american from '../images/american.jpg';
-import linear from '../images/linear.jpg';
+// import american from '../images/american.jpg';
+// import linear from '../images/linear.jpg';
 import SideSearchTab from '../components/SideBar';
+import { fetchProducts } from '../services/api';
+import { useEffect } from 'react';
+
+// imports needed for Myshae's previous code (plus a useEffect import)
+// import { useAuth } from '../contexts/AuthContext';
+// import { fetchProducts } from '../services/api';
+// import { useNavigate } from 'react-router-dom';
+// import { useCallback } from 'react';
+// import { SimpleGrid } from '@chakra-ui/react';
+// import { Link as RouterLink } from 'react-router-dom';
+// import { Container } from '@chakra-ui/react';
+// import { Textarea } from '@chakra-ui/react';
+
 
 // Hardcoded book metadata
-const initialBooks = [
-  {
-    id: 1,
-    title: 'American Art: History and Culture, Revised First Edition',
-    image: american,
-    categories: ['history', 'visual and performing arts'],
-    condition: 'like new',
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    price: '$27.50',
-    favorite: false
-  },
-  {
-    id: 2,
-    title: 'Linear Algebra & Its Applications 5E',
-    image: linear,
-    categories: ['math'],
-    condition: 'gently used',
-    catalogue: 'M 340L',
-    description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-    price: '$60.00',
-    favorite: false
-  },
-  {
-    id: 3,
-    title: 'Linear Algebra Done Right (Undergraduate - Hardcover)',
-    image: american,
-    categories: ['math', 'brand new'],
-    condition: 'brand new',
-    catalogue: 'M 340L',
-    description: 'hello! :)',
-    price: '$52.20',
-    favorite: false
-  },
-];
+// const initialBooks = [
+//   {
+//     id: 1,
+//     title: 'American Art: History and Culture, Revised First Edition',
+//     image: american,
+//     categories: ['history', 'vapa'],
+//     condition: 'like new',
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     price: '$27.50',
+//     favorite: false
+//   },
+//   {
+//     id: 2,
+//     title: 'Linear Algebra & Its Applications 5E',
+//     image: linear,
+//     categories: ['math'],
+//     condition: 'gently used',
+//     catalogue: 'M 340L',
+//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
+//     price: '$60.00',
+//     favorite: false
+//   },
+//   {
+//     id: 3,
+//     title: 'Linear Algebra Done Right (Undergraduate - Hardcover)',
+//     image: american,
+//     categories: ['math', 'logic'],
+//     condition: 'brand new',
+//     catalogue: 'M 340L',
+//     description: 'hello! :)',
+//     price: '$52.20',
+//     favorite: false
+//   },
+// ];
 
 const BookCard = ({ book, onToggleFavorite }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -253,7 +267,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
                 >
                   {/*no link functionality yet*/}
                   <Link to={`/account`} style={{ fontWeight:'lighter' }}>
-                    Make an Offer
+                    Make a Request
                   </Link>
                 </Button>
 
@@ -327,7 +341,30 @@ const BookCard = ({ book, onToggleFavorite }) => {
 
 const HomePage = () => {
 
-  const [books, setBooks] = useState(initialBooks);
+  // Olivia's working code
+  const [books, setBooks] = useState([]);
+  const toast = useToast();
+
+  // Fetch products from Firestore when the component mounts
+  useEffect(() => {
+    const loadProducts = async () => {
+      try {
+        const products = await fetchProducts(); // Fetch products from Firestore
+        setBooks(products); // Update the state with fetched products
+      } catch (error) {
+        console.error("Error fetching products:", error);
+        toast({
+          title: "Error",
+          description: "Failed to load products. Please try again later.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+      }
+    };
+
+    loadProducts();
+  }, [toast]);
 
   const handleToggleFavorite = (bookId) => {
     setBooks(prevBooks => 
@@ -339,10 +376,42 @@ const HomePage = () => {
     );
   };
 
+  // Myshae's previous code
+  // const [ products, setProducts ] = useState([]);
+  // const { currentUser } = useAuth();
+  // // const navigate = useNavigate();
+
+  // const fetchProductsList = useCallback(async () => {
+  //   try {
+  //     const productsList = await fetchProducts();
+  //     setProducts(productsList);
+  //   } catch (error) {
+  //     console.error("Error fetching products: ", error);
+  //   }
+  // }, []);
+  
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     fetchProductsList();
+  //   }
+  // }, [currentUser, fetchProductsList]);
+
+  // // Handler functions to pass to ProductCard
+  // const handleProductDelete = () => {
+  //   fetchProductsList(); // Re-fetch products after deletion
+  // };
+
+  // const handleProductUpdate = () => {
+  //   fetchProductsList(); // Re-fetch products after update
+  // };
+
+  // if (!currentUser) {
+  //   return <Navigate to="/login" replace />;
+  // }
+
   return (
     <Flex>
       <SideSearchTab />
-    
       <Box p={4} bg="gray.50" minHeight="100vh">
         <Grid 
           templateColumns={{
@@ -353,13 +422,26 @@ const HomePage = () => {
           }}
           gap={4}
         >
-          {books.map(book => (
+          {books.length > 0 ? books.map(book => (
             <BookCard 
               key={book.id} 
               book={book} 
               onToggleFavorite={handleToggleFavorite} 
             />
-          ))}
+          )) : (
+            <Flex
+              alignItems="center" // Adjust height to account for the navbar height
+            >
+            <Text
+              paddingLeft="100%"
+              fontFamily="NanumMyeongjo"
+              fontSize="xl"
+              textAlign="center"
+              whiteSpace="nowrap"
+              >No products found.</Text>
+              </Flex>
+          )}
+
         </Grid>
       </Box>
     </Flex>
