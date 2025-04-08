@@ -38,71 +38,6 @@ import { fetchProducts } from '../services/api';
 import { uploadProfileImage } from "../services/uploadProfileImage";
 import { updateUserProfile } from "../services/api";
 
-
-// Sample book data
-// const sampleBooks = [
-//   {
-//     id: 1,
-//     title: 'American Art and Culture: Revised First Edition by Craven',
-//     image: american,
-//     price: '$27.50',
-//     condition: 'like new',
-//     category: ['history', 'visual and performing arts'],
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     status: 'selling',
-//     saved: false,
-//   },
-//   {
-//     id: 2,
-//     title: 'Linear Algebra & Its Applications 5E',
-//     image: linear,
-//     price: '$60.00',
-//     condition: 'gently used',
-//     category: ['math'],
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     status: 'selling',
-//     saved: false,
-//   },
-//   {
-//     id: 3,
-//     title: 'Linear Algebra Done Right (Undergraduate - Hardcover, by Axler',
-//     image: american,
-//     price: '$59.20',
-//     condition: 'brand new',
-//     category: ['math'],
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     status: 'selling',
-//     saved: false,
-//   },
-//   {
-//     id: 4,
-//     title: "Gardner's Art through the Ages: A Global History - Hardcover",
-//     image: linear,
-//     price: '$64.99',
-//     condition: 'like new',
-//     category: ['visual and performing arts', 'history'],
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     status: 'selling',
-//     saved: false,
-//   },
-//   {
-//     id: 5,
-//     title: 'Diagnostic and Statistical Manual of Mental Disorders',
-//     image: american,
-//     price: '$70.99',
-//     condition: 'like new',
-//     category: ['math', 'science'],
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     status: 'selling',
-//     saved: false,
-//   },
-// ];
-
 // individual book cards 
 //need to change modal to be differnt from home page modal. !!!
 const BookCard = ({ book, onToggleFavorite }) => {
@@ -533,8 +468,11 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
 
                         {/* Logout Button */}
                         <Button
-                          bgColor="rgb(221, 147, 51)"
+                          bgColor="#DD8533"
                           color="white"
+                          fontWeight={"light"}
+                          borderRadius={25}
+                          px={10}
                           onClick={handleLogout}
                           _hover={{ bgColor: "rgba(221, 147, 51, 0.4)" }}
                         >

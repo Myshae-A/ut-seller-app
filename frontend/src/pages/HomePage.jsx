@@ -31,7 +31,12 @@ import Banner from '../components/Banner';
 
 const BookCard = ({ book, onToggleFavorite }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  const [imgIndex, setImgIndex] = useState(0);
 
+  const handleNextImage = () => {
+    setImgIndex((prevIndex) => (prevIndex + 1) % book.image.length);
+  };
+  
   return (
     <>
       <Box 
@@ -87,14 +92,13 @@ const BookCard = ({ book, onToggleFavorite }) => {
           </button>
         </Box>
         
-        <Box p={3} position="relative">
-          <Text 
+        <Box p={3} width="100%" textAlign="left">          <Text 
             fontWeight="bold" 
-            fontSize="sm" 
+            fontSize="lg" 
             noOfLines={1} 
             mb={2}
           >
-            {book.title}
+            {book.name}
           </Text>
           
           <Flex gap={2} mb={2} flexWrap="wrap">
@@ -127,9 +131,9 @@ const BookCard = ({ book, onToggleFavorite }) => {
           </Flex>
           
           <Text 
-            fontWeight="bold" 
             fontSize="sm" 
-            color="gray.700"
+            fontWeight="light"
+            color="gray.500"
           >
             {book.price}
           </Text>
@@ -153,13 +157,15 @@ const BookCard = ({ book, onToggleFavorite }) => {
               position="relative"
             >
               <Image 
-                  src={book.image}
+                  src={book.image[imgIndex]} // show current image
                   alt={book.title}
                   objectFit="cover"
                   width="200px"
                   height="300px"
                   borderRadius="10px"
                   mr={4}
+                  onClick={handleNextImage} // cycle to next image
+                  cursor="pointer"
                 />
             </Box>
 
@@ -179,9 +185,9 @@ const BookCard = ({ book, onToggleFavorite }) => {
                 flexDirection="column"
                 //justifyContent="space-between"
                 h="100%">
-              <Text fontSize="xl" mb={2}>{book.title}</Text>
+              <Text fontWeight="bold" fontSize="xl" mb={2}>{book.name}</Text>
                 
-              <Text fontWeight="bold" mb={2}>Price: {book.price}</Text>
+              <Text  mb={2}>Price: {book.price}</Text>
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
