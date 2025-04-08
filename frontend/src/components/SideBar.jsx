@@ -73,12 +73,14 @@ const SideSearchTab = () => {
         left="0"
         transform="translateY(-50%)"
         zIndex="1000"
-        bgColor={"rgba(221, 147, 51, 0.47)"}
+        bgColor="#DD8533"
+        color="white"
         borderLeftRadius="none"
         borderRightRadius="50"
         onClick={toggleDrawer}
         aria-label="Open Filters"
         size="lg"
+        px={8}
       />
 
       {/* Drawer Sidebar */}

@@ -24,59 +24,10 @@ import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { HiHeart } from "react-icons/hi"
 import ProductCard from '../components/ProductCard';
-// import american from '../images/american.jpg';
-// import linear from '../images/linear.jpg';
 import SideSearchTab from '../components/SideBar';
 import { fetchProducts } from '../services/api';
 import { useEffect } from 'react';
-
-// imports needed for Myshae's previous code (plus a useEffect import)
-// import { useAuth } from '../contexts/AuthContext';
-// import { fetchProducts } from '../services/api';
-// import { useNavigate } from 'react-router-dom';
-// import { useCallback } from 'react';
-// import { SimpleGrid } from '@chakra-ui/react';
-// import { Link as RouterLink } from 'react-router-dom';
-// import { Container } from '@chakra-ui/react';
-// import { Textarea } from '@chakra-ui/react';
-
-
-// Hardcoded book metadata
-// const initialBooks = [
-//   {
-//     id: 1,
-//     title: 'American Art: History and Culture, Revised First Edition',
-//     image: american,
-//     categories: ['history', 'vapa'],
-//     condition: 'like new',
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     price: '$27.50',
-//     favorite: false
-//   },
-//   {
-//     id: 2,
-//     title: 'Linear Algebra & Its Applications 5E',
-//     image: linear,
-//     categories: ['math'],
-//     condition: 'gently used',
-//     catalogue: 'M 340L',
-//     description: 'Few markings and highlighting. Explores the history of art from prehistoric times to the early modern era, covering diverse cultures and artistic movements.',
-//     price: '$60.00',
-//     favorite: false
-//   },
-//   {
-//     id: 3,
-//     title: 'Linear Algebra Done Right (Undergraduate - Hardcover)',
-//     image: american,
-//     categories: ['math', 'logic'],
-//     condition: 'brand new',
-//     catalogue: 'M 340L',
-//     description: 'hello! :)',
-//     price: '$52.20',
-//     favorite: false
-//   },
-// ];
+import Banner from '../components/Banner';
 
 const BookCard = ({ book, onToggleFavorite }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -410,7 +361,11 @@ const HomePage = () => {
   // }
 
   return (
+    <>
+    <Banner />
+    
     <Flex>
+      
       <SideSearchTab />
       <Box p={4} bg="gray.50" minHeight="100vh">
         <Grid 
@@ -445,6 +400,7 @@ const HomePage = () => {
         </Grid>
       </Box>
     </Flex>
+    </>
   );
 };
 
