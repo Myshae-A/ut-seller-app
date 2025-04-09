@@ -17,6 +17,7 @@ import {
   Button,
   Link,
   Tabs,
+  Select,
   TabList,
   Tab,
   TabPanels,
@@ -64,7 +65,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
           <Image 
             borderRadius={15}
             src={book.image}
-            alt={book.title}
+            alt={book.name}
             objectFit="cover"
             width="full"
             height="full"
@@ -105,7 +106,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
             noOfLines={1} 
             mb={2}
           >
-            {book.title}
+            {book.name}
           </Text>
           
           <Flex gap={2} mb={2} flexWrap="wrap">
@@ -142,7 +143,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
             fontSize="sm" 
             color="gray.700"
           >
-            {book.price}
+            ${book.price}
           </Text>
         </Box>
       </Box>
@@ -165,7 +166,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
             >
               <Image 
                   src={book.image}
-                  alt={book.title}
+                  alt={book.name}
                   objectFit="cover"
                   width="200px"
                   height="300px"
@@ -190,9 +191,9 @@ const BookCard = ({ book, onToggleFavorite }) => {
                 flexDirection="column"
                 //justifyContent="space-between"
                 h="100%">
-              <Text fontSize="xl" mb={2}>{book.title}</Text>
+              <Text fontSize="xl" mb={2}>{book.name}</Text>
                 
-              <Text fontWeight="bold" mb={2}>Price: {book.price}</Text>
+              <Text fontWeight="bold" mb={2}>Price: ${book.price}</Text>
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
@@ -222,16 +223,23 @@ const BookCard = ({ book, onToggleFavorite }) => {
                       </Badge>
                     )}
                   </Flex>
+                
+                {/*NO FUNCTIONALTY*/}
+                  <Select 
+                    name="status"
+                    placeholder="status" 
+                    bg={'gray.300'}
+                    _hover={{ bg: 'gray.400' }}
+                    _focus={{ bg: 'gray.400' }}
+                    variant="filled" 
+                    borderRadius={30}
+                    size="md"
+                  >
+                    <option value="Fiction">Sold</option>
+                    <option value="Non-Fiction">Selling</option>
+                    <option value="Reference">On Hold</option>
+                  </Select>
                 </Box>
-                <Button
-                  bgColor={"rgb(221, 147, 51)"}
-                  borderRadius={20}
-                >
-                  {/*no link functionality yet*/}
-                  <Link to={`/account`} style={{ fontWeight:'lighter' }}>
-                    Make an Offer
-                  </Link>
-                </Button>
 
                 <Box mt={4}>
                   <Flex gap={2} mb={2} align="center" direction="row" justify="space-evenly">

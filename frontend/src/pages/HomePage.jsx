@@ -135,7 +135,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
             fontWeight="light"
             color="gray.500"
           >
-            {book.price}
+            ${book.price}
           </Text>
         </Box>
       </Box>
@@ -187,7 +187,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
                 h="100%">
               <Text fontWeight="bold" fontSize="xl" mb={2}>{book.name}</Text>
                 
-              <Text  mb={2}>Price: {book.price}</Text>
+              <Text  mb={2}>Price: ${book.price}</Text>
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
