@@ -227,7 +227,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
                 {/*NO FUNCTIONALTY*/}
                   <Select 
                     name="status"
-                    placeholder="status" 
+                    placeholder="Select Status..." 
                     bg={'gray.300'}
                     _hover={{ bg: 'gray.400' }}
                     _focus={{ bg: 'gray.400' }}
