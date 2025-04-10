@@ -28,6 +28,19 @@ import SideSearchTab from '../components/SideBar';
 import { fetchProducts } from '../services/api';
 import { useEffect } from 'react';
 import Banner from '../components/Banner';
+import { InfiniteSlider } from '@/components/Slider';
+
+import p1 from '../images/p1.png';
+import p2 from '../images/p2.png';
+import p3 from '../images/p3.png';
+import p4 from '../images/p4.png';
+import p5 from '../images/p5.png';
+import p6 from '../images/p6.png';
+import p7 from '../images/p7.png';
+import p8 from '../images/p8.png';
+import p9 from '../images/p9.png';
+import p10 from '../images/p10.png';
+import p11 from '../images/p11.png';
 
 const BookCard = ({ book, onToggleFavorite }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
@@ -298,7 +311,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
 
 const HomePage = () => {
 
-  // Olivia's working code
+  const imagePaths = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11];
   const [books, setBooks] = useState([]);
   const toast = useToast();
 
@@ -368,7 +381,47 @@ const HomePage = () => {
 
   return (
     <>
-    <Banner />
+    <Box className="p-4">
+    <Text
+           position="absolute"
+           top="40%"
+           left="50%"
+           transform="translate(-50%, -50%)"
+           fontSize="9xl"
+           fontFamily="NanumMyeongjo"
+           color="black"
+        >
+          MISO
+        </Text>
+
+        <Text
+            position="absolute"
+            top="70%"
+            left="50%"
+            transform="translate(-50%, -50%)"
+            fontSize="4xl"
+            color="black">
+            Tasty Deals on Textbooks!
+        </Text>
+        
+      <InfiniteSlider
+        gap={20}
+        duration={30}
+        durationOnHover={10}
+        direction="horizontal"
+        className="w-full h-[200px]"
+      >
+        {imagePaths.map((src, index) => (
+          <img
+            key={index}
+            src={src}
+            alt={`Slide ${index + 1}`}
+            className="h-full w-[200px] object-cover rounded-lg"
+          />
+        ))}
+      </InfiniteSlider>
+    </Box>
+
     
     <Flex>
       

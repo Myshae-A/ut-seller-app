@@ -373,10 +373,12 @@ const CreatePage = () => {
                 variant="filled" 
                 size="md"
               >
-                <option value="New">New</option>
+                <option value="Brand New">Brand New</option>
                 <option value="Like New">Like New</option>
-                <option value="Good">Good</option>
-                <option value="Fair">Fair</option>
+                <option value="Gently Used">Gently Used</option>
+                <option value="Fairly Used">Fairly Used</option>
+                <option value="Heavily Used">Heavily Used</option>
+
               </Select>
               
               <Select 
