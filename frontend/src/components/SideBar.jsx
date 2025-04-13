@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { 
+  Tooltip,
   Drawer,
   DrawerBody,
   DrawerHeader,
@@ -66,22 +67,24 @@ const SideSearchTab = () => {
   return (
     <>
       {/* Floating Filter Button */}
-      <IconButton 
-        icon={<ChevronRightIcon />}
-        position="fixed"
-        top="6%"
-        left="0"
-        transform="translateY(-50%)"
-        zIndex="1000"
-        bgColor="#DD8533"
-        color="white"
-        borderLeftRadius="none"
-        borderRightRadius="50"
-        onClick={toggleDrawer}
-        aria-label="Open Filters"
-        size="lg"
-        px={8}
-      />
+      <Tooltip label="Use search filters" aria-label="Logout tooltip">
+        <IconButton 
+          icon={<ChevronRightIcon />}
+          position="fixed"
+          top="5%"
+          left="0"
+          transform="translateY(-70%)"
+          zIndex="1000"
+          bgColor="#DD8533"
+          color="white"
+          borderLeftRadius="none"
+          borderRightRadius="50"
+          onClick={toggleDrawer}
+          aria-label="Open Filters"
+          size="md"
+          px={8}
+        />
+      </Tooltip>
 
       {/* Drawer Sidebar */}
       <Drawer 

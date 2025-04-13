@@ -22,19 +22,100 @@ import {
 } from '@chakra-ui/react';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
-import { HiHeart } from "react-icons/hi"
-import ProductCard from '../components/ProductCard';
+import { HiHeart } from "react-icons/hi";
 import SideSearchTab from '../components/SideBar';
-import { fetchProducts } from '../services/api';
+import {
+  fetchProducts,
+  fetchProductById,
+  addProductToUser,
+  updateUsersRequestedGlobally
+} from '../services/api';
 import { useEffect } from 'react';
 import Banner from '../components/Banner';
+import { useAuth } from "../contexts/AuthContext";
+import InfiniteScroll from 'react-infinite-scroll-component';
 
-const BookCard = ({ book, onToggleFavorite }) => {
+
+const BookCard = ({ book, onToggleFavorite, currentUser }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [imgIndex, setImgIndex] = useState(0);
+  const toast = useToast();
+  // const { updateBooksRequested } = useAuth(); // Assuming you have a context or state management for this
 
   const handleNextImage = () => {
     setImgIndex((prevIndex) => (prevIndex + 1) % book.image.length);
+  };
+
+  const handleMakeRequest = async () => {
+    if (!currentUser) {
+      toast({
+        title: "Error",
+        description: "You must be logged in to make a request.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+      return;
+    }
+
+    try {
+
+      if (book.usersRequested.includes(currentUser.uid)) {
+        toast({
+          title: "Error",
+          description: "You have already requested this book.",
+          status: "error",
+          duration: 3000,
+          isClosable: true,
+        });
+        return;
+      }
+      
+      // console.log("Making request for product ID:", book.id, "by user ID:", currentUser.uid);
+      const requestedProduct = await fetchProductById(book.id); // Assuming you have a function to get the product by ID
+      const userId = currentUser.uid;
+      console.log("[HOMEPAGE] requestedProduct: ", requestedProduct);
+
+      const productData = requestedProduct.product || requestedProduct; // Adjust based on your API response structure
+      // console.log("requestedProduct as JSON: ", JSON.stringify(requestedProduct));
+      // console.log("requestedProduct.status1: ", requestedProduct.product.status);
+      productData.status = "requested";
+      productData.usersRequested.push(userId); // Add the user ID to the usersRequested array
+      
+      console.log("IS THIS WORKING??", productData);
+      
+      // console.log("requestedProduct.status2: ", requestedProduct.status);
+      const formattedProduct = { ...productData};
+
+      const userPostedId = productData.userPosted
+      console.log("userPostedID: ", userPostedId);
+
+      // Add the product to the user's userProducts list
+      await addProductToUser(userId, formattedProduct);
+
+      await updateUsersRequestedGlobally(userId, book.id, userPostedId); // Assuming you have a function to update the user's requested products
+
+      
+      
+      // console.log("requested Product here, new testgin"+JSON.stringify(formattedProduct));
+
+      toast({
+        title: "Success",
+        description: "Request sent successfully!",
+        status: "success",
+        duration: 3000,
+        isClosable: true,
+      });
+    } catch (error) {
+      console.log("Error making request:", error);
+      toast({
+        title: "Error",
+        description: "Failed to send request. Please try again.",
+        status: "error",
+        duration: 3000,
+        isClosable: true,
+      });
+    }
   };
   
   return (
@@ -157,7 +238,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
               position="relative"
             >
               <Image 
-                  src={book.image[imgIndex]} // show current image
+                  src={book.image} // show current image - got rid of book.image[imgIndex]
                   alt={book.title}
                   objectFit="cover"
                   width="200px"
@@ -221,9 +302,10 @@ const BookCard = ({ book, onToggleFavorite }) => {
                 <Button
                   bgColor={"rgb(221, 147, 51)"}
                   borderRadius={20}
+                  onClick={handleMakeRequest}
                 >
                   {/*no link functionality yet*/}
-                  <Link to={`/account`} style={{ fontWeight:'lighter' }}>
+                  <Link style={{ fontWeight:'lighter' }}>
                     Make a Request
                   </Link>
                 </Button>
@@ -298,30 +380,71 @@ const BookCard = ({ book, onToggleFavorite }) => {
 
 const HomePage = () => {
 
+  const { currentUser } = useAuth();
   // Olivia's working code
   const [books, setBooks] = useState([]);
-  const toast = useToast();
+  // const toast = useToast();
+  const [page, setPage] = useState(1); // Track the current page
+  const [hasMore, setHasMore] = useState(true); // Track if more products are available
+
+
+  // Fetch products for the current page
+  const fetchMoreProducts = async () => {
+    try {
+      const limit = 10; // Number of products to fetch per page
+      const response = await fetchProducts(page, limit); // Pass page and limit to the API
+      if (response.length === 0) {
+        setHasMore(false); // No more products to load
+        return;
+      }
+      // Shows products that are NOT this user's in homepage
+      const filteredProducts = response.filter(
+        (product) =>
+          product.userPosted !== currentUser.uid &&
+          product.status !== "bought" &&
+          product.status !== "sold"
+      );
+      setBooks(filteredProducts); // Append new products to the list
+      // setPage((prevPage) => prevPage + 1); // Increment the page number
+    } catch (error) {
+      console.error("Error fetching products:", error);
+    }
+  };
+
+  useEffect(() => {
+    if (currentUser) {
+      fetchMoreProducts(); // Load the first page of products
+    }
+  }, []);
 
   // Fetch products from Firestore when the component mounts
-  useEffect(() => {
-    const loadProducts = async () => {
-      try {
-        const products = await fetchProducts(); // Fetch products from Firestore
-        setBooks(products); // Update the state with fetched products
-      } catch (error) {
-        console.error("Error fetching products:", error);
-        toast({
-          title: "Error",
-          description: "Failed to load products. Please try again later.",
-          status: "error",
-          duration: 3000,
-          isClosable: true,
-        });
-      }
-    };
+  // useEffect(() => {
+  //   const loadProducts = async () => {
+  //     try {
+  //       const cachedProducts = localStorage.getItem("products");
+  //       console.log("Cached products:", cachedProducts); // Debugging line
+  //       if (cachedProducts) {
+  //         setBooks(JSON.parse(cachedProducts)); // Use cached data
+  //         return;
+  //       }
 
-    loadProducts();
-  }, [toast]);
+  //       const products = await fetchProducts(); // Fetch products from Firestore
+  //       setBooks(products); // Update the state with fetched products
+  //       localStorage.setItem("products", JSON.stringify(products)); // Cache the data
+  //     } catch (error) {
+  //       console.error("Error fetching products:", error);
+  //       toast({
+  //         title: "Error",
+  //         description: "Failed to load products. Please try again later.",
+  //         status: "error",
+  //         duration: 3000,
+  //         isClosable: true,
+  //       });
+  //     }
+  //   };
+
+  //   loadProducts();
+  // }, []);
 
   const handleToggleFavorite = (bookId) => {
     setBooks(prevBooks => 
@@ -388,6 +511,7 @@ const HomePage = () => {
               key={book.id} 
               book={book} 
               onToggleFavorite={handleToggleFavorite} 
+              currentUser={currentUser}
             />
           )) : (
             <Flex

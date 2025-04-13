@@ -112,7 +112,7 @@ const LoginPage = () => {
                         <Input 
                             bg="rgb(221, 147, 51, .33)"
                             fontSize={18}
-                            fontColor="black"
+                            color="black"
                             borderRadius={10}
                             padding={5}
                             placeholder='Email'
@@ -125,7 +125,7 @@ const LoginPage = () => {
                         <Input
                             bg="rgb(221, 147, 51, .33)"
                             fontSize={18}
-                            fontColor="black"
+                            color="black"
                             borderRadius={10}
                             padding={5}
                             placeholder='Password'
@@ -137,7 +137,7 @@ const LoginPage = () => {
                     <Button
                         bgColor={"rgb(221, 147, 51)"}
                         fontSize={18}
-                        fontColor="black"
+                        color="black"
                         fontWeight={"normal"}
                         borderRadius={20}
                         textAlign={"center"}
@@ -151,7 +151,7 @@ const LoginPage = () => {
                         bgColor={"rgb(177, 177, 177)"}
                         fontSize={18}
                         fontWeight={"normal"}
-                        fontColor="white"
+                        color="blaclk"
                         borderRadius={20}
                         textAlign={"center"}
                         w="full"

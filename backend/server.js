@@ -28,9 +28,15 @@ app.get('/api', (req, res) => {
 
 // GET: Fetch all products
 app.get('/api/products', async (req, res) => {
+    const { page = 1, limit = 10 } = req.query; // Default to page 1, 10 items per page
+
     try {
         const productsCollection = db.collection('products');
-        const productsSnapshot = await productsCollection.get();
+        const productsSnapshot = await productsCollection
+            .orderBy('createdAt', 'desc') // Optional: Order by a field
+            .offset((page - 1) * limit)
+            .limit(parseInt(limit))
+            .get();
         const productsList = productsSnapshot.docs.map(doc => ({
             id: doc.id,
             ...doc.data()
@@ -39,6 +45,127 @@ app.get('/api/products', async (req, res) => {
     } catch (error) {
         console.error("Error fetching products:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+app.get('/api/users/:userId/userProducts', async (req, res) => {
+    const { userId } = req.params; // Extract the userId from the request parameters
+    console.log("HEREE 4-12-25 products for userId:", userId);
+    try {
+        // const userRef = db.collection('users').doc(userId); // Reference the user document
+        // const userDoc = await userRef.get(); // Fetch the document
+
+        // if (!userDoc.exists) {
+        //     return res.status(404).json({ success: false, message: 'User not found.' });
+        // }
+
+        // const userData = userDoc.data(); // Get the user data
+        // const userProducts = userData.userProducts || []; // Get the `productsPosted` array
+
+        // -----------------------------
+            // const userId = req.params.userId;
+            // console.log("userId: ", userId);
+            // const productData = req.body; // Use the whole request body
+            // console.log("productData: ", productData);
+            const userRef = db.collection('users').doc(userId);
+            const userDoc = await userRef.get(); // Fetch the document
+            if (!userDoc.exists) {
+                return res.status(404).json({ success: false, message: 'User not found.' });
+            }
+            // console.log("userRef: ", userRef);
+            const userProducts = userDoc.data().userProducts || []; // Fetch the user document
+            // const userProducts = await userRef.get("userProducts"); // Fetch the user document
+            console.log("userProducts: ", userProducts);
+
+            const rawProducts = userProducts.map((item) => item.product || item);
+    
+            console.log("RAWPRODUCTS: ", rawProducts);
+
+            // console.log("made it before userRef")
+            // const userId = req.params.userId;
+            // const userRef = db.collection('users').doc(userId);
+            // console.log("Made it here bruh"); // YES IT WORKS NOW!!!! T_T glory to God!
+            // await userRef.update({
+            //     userProducts: admin.firestore.FieldValue.arrayUnion(productData)
+            // });
+
+        res.status(200).json(rawProducts); // Return the products posted by the user
+    } catch (error) {
+        console.error('Error fetching user products:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch user products.' });
+    }
+});
+
+
+app.put('/api/updateUsersRequestedGlobally', async (req, res) => {
+    const { userId, productId, userPostedId } = req.body; // Extract the userId from the request parameters
+    console.log("Received updateUsersRequestedGlobally call:");
+    console.log("userId:", userId);
+    console.log("productId:", productId);
+    console.log("userPostedId:", userPostedId);
+    try {
+        
+        // Update the product's `usersRequested` field in the `products` collection
+        const productRef = db.collection('products').doc(productId);
+        await productRef.update({
+            usersRequested: admin.firestore.FieldValue.arrayUnion(userId),
+        });
+
+
+        const userPostedRef = db.collection('users').doc(userPostedId);
+        const userPostedDoc = await userPostedRef.get();
+
+        if (!userPostedDoc.exists) {
+            return res.status(404).json({ success: false, message: 'User who posted the product not found.' });
+        }
+
+        const userPostedData = userPostedDoc.data().userProducts || [];
+
+        // The big ??? below
+        // SHOULD update the user who posted the product's product to update the users requested
+        const updatedProductsPosted = userPostedData.map((product) => {
+            if (product.id === productId) {
+                return {
+                    ...product,
+                    usersRequested: Array.isArray(product.usersRequested)
+                        ? [...new Set([...product.usersRequested, userId])] // Add userId and ensure no duplicates
+                        : [userId], // Initialize the array if it doesn't exist
+                };
+            }
+            return product;
+        });
+
+        console.log("updatedProductsPosted::: ", updatedProductsPosted);
+
+        await userPostedRef.update({ // works! (as far as I can tell)
+            userProducts: updatedProductsPosted,
+        });
+
+
+    } catch (error) {
+        console.error('Error updateUsersRequestedGlobally:', error);
+        res.status(500).json({ success: false, message: 'Failed to update user products.' });
+    }
+
+})
+
+// GET: Fetch a product by ID
+app.get('/api/products/:id', async (req, res) => {
+    const { id } = req.params; // Extract the product ID from the request parameters
+
+    try {
+        const productRef = db.collection('products').doc(id); // Reference the product document
+        const productDoc = await productRef.get(); // Fetch the document
+
+        if (!productDoc.exists) {
+            return res.status(404).json({ success: false, message: 'Product not found.' });
+        }
+
+        const productData = productDoc.data(); // Get the product data
+        res.status(200).json({ success: true, product: productData }); // Return the product data
+    } catch (error) {
+        console.error('Error fetching product:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch product.' });
     }
 });
 
@@ -69,6 +196,87 @@ app.post('/api/products', async (req, res) => {
     }
 });
 
+// post: request a product (updates a TON of stuff)
+app.post("/api/products/:productId/request", async (req, res) => {
+    const { productId } = req.params;
+    const { userId } = req.body; // The ID of the user making the request
+
+    if (!userId) {
+      return res.status(400).json({ success: false, message: "User ID is required." });
+    }
+  
+    try {
+
+        const productRef = db.collection("products").doc(productId);
+        const userRef = db.collection("users").doc(userId);
+    
+        // Fetch the product document
+        const productDoc = await productRef.get();
+        if (!productDoc.exists) {
+          return res.status(404).json({ success: false, message: "Product not found." });
+        }
+    
+        const productData = productDoc.data();
+        const userPostedId = productData.userPosted; // The user who posted the product
+        const userPostedRef = db.collection("users").doc(userPostedId);
+    
+        // Fetch the user who posted the product
+        const userPostedDoc = await userPostedRef.get();
+        if (!userPostedDoc.exists) {
+          return res.status(404).json({ success: false, message: "User who posted the product not found." });
+        }
+    
+        const userPostedData = userPostedDoc.data();
+        const productsPosted = userPostedData.productsPosted || []; // Get the `productsPosted` array
+    
+        // Update the specific product in the `productsPosted` array
+        const updatedProductsPosted = productsPosted.map((product) => {
+          if (product.id === productId) {
+            return {
+              ...product,
+              usersRequested: Array.isArray(product.usersRequested)
+                ? [...new Set([...product.usersRequested, userId])] // Add userId and ensure no duplicates
+                : [userId], // Initialize the array if it doesn't exist
+            };
+          }
+          return product;
+        });
+    
+        
+        // Replace the `productsPosted` array in Firestore
+        await userPostedRef.update({
+          productsPosted: updatedProductsPosted,
+        });
+    
+        // Update the product's `usersRequested` field in the `products` collection
+        await productRef.update({
+          usersRequested: admin.firestore.FieldValue.arrayUnion(userId),
+        });
+    
+        // Add the product to the requesting user's `productsRequested` array
+        await userRef.update({
+          productsRequested: admin.firestore.FieldValue.arrayUnion(productId),
+        });
+
+        console.log("UPDATING BOOKS REQUESTED HOPEFULLY HERE")
+        // AuthContext.updateAuthBooksRequested(productId); // causes error
+ 
+        // uneeded?
+        // Add the product to the requesting user's `booksRequested` array
+        // await userRef.update({
+        //     booksRequested: admin.firestore.FieldValue.arrayUnion(productId),
+        // });
+
+      res.status(200).json({ success: true, message: "Request added successfully." });
+    } catch (error) {
+      console.error("Error adding request:", error);
+      res.status(500).json({ success: false, message: "Failed to add request." });
+    }
+});
+
+
+
+// POST: Add a new product to the user's productsPosted array
 app.post('/api/users/:userId/productsPosted', async (req, res) => {
     // const { userId } = req.params; // Extract userId from request parameters
     // const { formattedProduct } = req.body; // Extract formattedProduct from request body
@@ -90,13 +298,81 @@ app.post('/api/users/:userId/productsPosted', async (req, res) => {
         // const userRef = db.collection('users').doc(userId);
         // console.log("Made it here bruh"); // YES IT WORKS NOW!!!! T_T glory to God!
         await userRef.update({
-            productsPosted: admin.firestore.FieldValue.arrayUnion(productData)
+            userProducts: admin.firestore.FieldValue.arrayUnion(productData)
         });
         
         res.status(200).json({ success: true, message: 'Posted products pending updated successfully' });
     } catch (error) {
         console.error("Error updating posted products:", error);
         res.status(500).json({ success: false, message: error.message });
+    }
+});
+
+// // Update the user's productRequested field (single product? i think)
+// app.put('/api/users/:userId/productRequested', async (req, res) => {
+//     const { userId } = req.params;
+//     const { requestedBooks } = req.body; // Array of requested book IDs
+
+//     if (!requestedBooks || !Array.isArray(requestedBooks)) {
+//         return res.status(400).json({ success: false, message: "Invalid requestedBooks data." });
+//     }
+
+//     try {
+//         const userRef = db.collection('users').doc(userId);
+//         await userRef.update({
+//             productsRequested: requestedBooks, // Overwrite the productsRequested field
+//         });
+
+//         res.status(200).json({ success: true, message: "Products requested updated successfully." });
+//     } catch (error) {
+//         console.error("Error updating productsRequested:", error);
+//         res.status(500).json({ success: false, message: "Failed to update productsRequested." });
+//     }
+// });
+
+
+// GET: Fetch all products requested by a user // STOPPED HERE!!!!!! trying to make the user's requested products render even after closing the website and logging back in. by connecting the user's requested products to the database
+app.get('/api/users/:userId/productsRequested', async (req, res) => {
+    const { userId } = req.params;
+    console.log("HERE 2!!!! [productsRequested api call server]");
+    try {
+        console.log("IN HERE PRODUCTSREQUESTED SERVER")
+        // Fetch the user's document
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get();
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        // Get the list of product IDs from the user's `productsRequested` field
+        const userData = userDoc.data();
+        const productsRequested = userData.productsRequested || [];
+
+        if (productsRequested.length === 0) {
+            return res.status(200).json({ success: true, products: [] }); // Return an empty list if no products are requested
+        }
+
+        // Fetch the product details for each product ID
+        const productPromises = productsRequested.map(async (productId) => {
+            const productRef = db.collection('products').doc(productId);
+            const productDoc = await productRef.get();
+
+            if (productDoc.exists) {
+                return { id: productDoc.id, ...productDoc.data() }; // Include the product ID and data
+            } else {
+                console.warn(`Product with ID ${productId} not found.`);
+                return null; // Handle missing products gracefully
+            }
+        });
+
+        // Resolve all promises and filter out any null values (missing products)
+        const products = (await Promise.all(productPromises)).filter((product) => product !== null);
+
+        res.status(200).json({ success: true, products }); // Return the list of products
+    } catch (error) {
+        console.error('Error fetching requested products:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch requested products.' });
     }
 });
 
@@ -170,13 +446,11 @@ app.post('/api/register', async (req, res) => {
 
       // Create user document in Firestore -- works
       await db.collection('users').doc(user.uid).set({
+          id: user.uid,  
           email: user.email,
-          displayName: user.email, // Use email as display name
+          displayName: user.email.split('@')[0], // Use email as display name
           createdAt: new Date(),
-          productsBought: [],
-          productsSold: [],
-          productsPosted: [],
-          productsRequested: [],
+          userProducts: [], // a single array to keep track of products bought, sold, posted, & requested
           emailVerified: false // Start as unverified (if logging in without google auth)
       });
 
@@ -208,10 +482,7 @@ app.post('/api/register-google', async (req, res) => {
             email: user.email,
             displayName: user.displayName,
             createdAt: new Date(),
-            productsBought: [],
-            productsSold: [],
-            productsPosted: [],
-            productsRequested: [],
+            userProducts: [], // a single array to keep track of products bought, sold, posted, & requested
             emailVerified: true // Google users are verified by default
         });
     }
@@ -226,21 +497,117 @@ app.post('/api/register-google', async (req, res) => {
 app.put("/api/users/:userId/profile-image", async (req, res) => {
     const { userId } = req.params;
     const { profileImage } = req.body;
-  
+
     if (!profileImage) {
-      return res.status(400).json({ success: false, message: "Profile image URL is required." });
+        return res.status(400).json({ success: false, message: "Profile image URL is required." });
     }
-  
+
     try {
-      const userRef = db.collection("users").doc(userId);
-      await userRef.update({ profileImage });
-  
-      res.status(200).json({ success: true, message: "Profile image updated successfully." });
+        const userRef = db.collection("users").doc(userId);
+        await userRef.update({ profileImage });
+
+        res.status(200).json({ success: true, message: "Profile image updated successfully." });
     } catch (error) {
-      console.error("Error updating profile image:", error);
-      res.status(500).json({ success: false, message: "Failed to update profile image." });
+        console.error("Error updating profile image:", error);
+        res.status(500).json({ success: false, message: "Failed to update profile image." });
     }
-  });
+});
+
+
+//gets the user's name from userID - getUserNameFromID
+app.get('api/users/:userId', async (req, res) => {
+    const { userId } = req.params; // Extract userId from request parameters
+    console.log("HERE DOES IT WORK???")
+    try {
+        const userRef = db.collection('users').doc(userId); // Reference the user document
+        const userDoc = await userRef.get(); // Fetch the document
+
+        if (!userDoc.exists) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+
+        const userName = userDoc.data().displayName; // Get the user's display name
+        console.log("userName WORKS???: ", userName);
+        res.status(200).json(userName); // Return the user data
+    } catch (error) {
+        console.error('Error fetching user:', error);
+        res.status(500).json({ success: false, message: 'Failed to fetch user.' });
+    }
+});
+
+
+
+app.put('/api/updateBookSoldByToOther', async (req, res) => {
+    const { userId, productId, soldToUserId } = req.body; // Extract the userId from the request parameters
+    console.log("Received updateBookSoldByToOther call:");
+    // console.log("userId:", userId);
+    // console.log("productId:", productId);
+    // console.log("userPostedId:", userPostedId);
+    try {
+
+        console.log("lane 1")
+        // update product in global product
+        const productRef = db.collection('products').doc(productId);
+        await productRef.update({
+            status: 'sold',
+            soldTo: soldToUserId,
+        });
+
+        console.log("lane 2")
+        // update the user who SOLD the product's product status
+        const userRef = db.collection('users').doc(userId);
+        const userDoc = await userRef.get(); // Fetch the document
+        if (!userDoc.exists) {
+            return res.status(404).json({ success: false, message: 'User not found.' });
+        }
+        const userData = userDoc.data().userProducts || []; // Get the user data
+        const updatedProductsPosted = userData.map((product) => {
+            if (product.id === productId) {
+                return {
+                    ...product,
+                    status: 'sold',
+                    soldTo: soldToUserId,
+                };
+            }
+            return product;
+        });
+
+        await userRef.update({
+            userProducts: updatedProductsPosted,
+        });
+
+        console.log("lane 3")
+        // update the user who BOUGHT the product's product status
+        const userRef2 = db.collection('users').doc(soldToUserId);
+        const userDoc2 = await userRef2.get(); // Fetch the document
+        const userData2 = userDoc2.data().userProducts || []; // Get the user data
+        const updatedProductsPosted2 = userData2.map((product) => {
+            if (product.id === productId) {
+                return {
+                    ...product,
+                    status: 'bought',
+                    soldTo: soldToUserId,
+                };
+            }
+            return product;
+        });
+
+        await userRef2.update({
+            userProducts: updatedProductsPosted2,
+        });
+
+
+
+
+        res.status(200).json({ success: true, message: 'Product sold successfully' });
+    } catch (error) {
+        console.error('Error updating book sold:', error);
+        res.status(500).json({ success: false, message: 'Failed to update book sold.' });
+    }
+});
+
+
+
 
 const PORT = process.env.PORT || 5000;
 

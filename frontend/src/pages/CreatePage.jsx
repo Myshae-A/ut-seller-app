@@ -159,10 +159,10 @@ const CreatePage = () => {
         image: uploadedImageUrls[0], // Main image is the first one
         additionalImages: uploadedImageUrls.slice(1).filter(url => url), // Additional images
         createdAt: new Date().toUTCString(),
-        beenSold: false,
         userPosted: currentUser.uid,
         usersRequested: [],
-        status: "posted"
+        status: "posted",
+        soldTo: "",
       };
       
       // Add the product to the global database of all products
@@ -188,20 +188,22 @@ const CreatePage = () => {
       
       // Reset the form
       setNewProduct({
-        name: "",
-        price: "",
-        image: "",
-        subject: "",
-        department: "",
-        condition: "",
-        catalogNumber: "",
-        description: "",
-        status: ""
+          name: "",
+          price: "",
+          image: "",
+          subject: "",
+          department: "",
+          condition: "",
+          catalogNumber: "",
+          description: "",
+          status: "",
+          soldTo: "",
       });
       setImageFiles(Array(4).fill(null));
       setImageUrls(Array(4).fill(""));
       
-      navigate("/home");
+      // go to your account page after posting/creating a product
+      navigate("/account");
     } catch (error) {
       console.error("Error adding product:", error);
       toast({
@@ -220,7 +222,13 @@ const CreatePage = () => {
   // const fileInputRefs = Array(4).fill().map(() => React.createRef());
 
   return (
-    <Box maxW="1000px" mx="auto" p={4} bg="white">
+    <Box
+      maxW="1000px"
+      mx="auto"
+      p={4}
+      bg="white"
+      mt={8}
+    >
       <Flex justify="space-between" align="center" mb={4}>
       <Text 
         fontSize="xl"
