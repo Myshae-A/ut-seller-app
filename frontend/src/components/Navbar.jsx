@@ -6,8 +6,9 @@ import logo from "../images/miso_logo.png";
 import { FiSearch } from 'react-icons/fi';
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
+import SearchBar from './SearchBar';
 
-const Navbar = () => {
+const Navbar = ({ searchQuery, handleSearchInput, handleSearchKeyDown}) => {
   
   const navigate = useNavigate();
   const { logout } = useAuth();
@@ -46,16 +47,18 @@ return (
     <Flex w="82%" align="center" gap={8}>
       <Flex align="left" gap={1}>
         {/* MISO LOGO */}
-        <Heading
-          paddingLeft={"5%"}
-          fontWeight="normal"
-          size="2xl"
-          fontFamily="NanumMyeongjo"
-          onClick={handleHomeNavigation}
-          cursor="pointer" 
-        >
-          MISO
-        </Heading>
+        <Tooltip label="Go to home page feed" aria-label="Home tooltip">
+          <Heading
+            paddingLeft={"5%"}
+            fontWeight="normal"
+            size="2xl"
+            fontFamily="NanumMyeongjo"
+            onClick={handleHomeNavigation}
+            cursor="pointer" 
+          >
+            MISO
+          </Heading>
+        </Tooltip>
 
         {/*icon */}
         <Image
@@ -68,18 +71,12 @@ return (
         </Flex>
 
         {/* Search bar */}
-        <InputGroup maxW="300px">
-            <InputLeftElement pointerEvents="none">
-              <FiSearch color="gray.600" />
-            </InputLeftElement>
-            <Input
-              placeholder="Search..."
-              borderRadius="30"
-              borderColor="#DD933340"
-              focusBorderColor="#DD8533"
-              bgColor="#DD933340"
-            />
-          </InputGroup>
+        {location.pathname === '/home' && <SearchBar
+          searchQuery={searchQuery}
+          onSearchInput={handleSearchInput}
+          onSearchKeyDown={handleSearchKeyDown}
+        />}
+        
         </Flex>
 
 

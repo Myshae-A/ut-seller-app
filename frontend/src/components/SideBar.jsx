@@ -21,11 +21,19 @@ import {
 } from '@chakra-ui/react';
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
-const SideSearchTab = () => {
+const SideSearchTab = ({
+  selectedSubjects,
+  setSelectedSubjects,
+  selectedConditions,
+  setSelectedConditions,
+  selectedDepartment,
+  setSelectedDepartment,
+  selectedCatalogNumber,
+  setSelectedCatalogNumber,
+  onApplyFilters,
+}) => {
   const [isOpen, setIsOpen] = useState(false);
-  const [selectedSubjects, setSelectedSubjects] = useState([]);
-  const [selectedConditions, setSelectedConditions] = useState([]);
-  
+
   const toggleDrawer = () => setIsOpen(!isOpen);
 
   const toggleSubject = (subject) => {
@@ -44,25 +52,66 @@ const SideSearchTab = () => {
     );
   };
 
+
+  const handleApplyFilters = () => {
+    // Pass the selected filters to the parent component
+    onApplyFilters({
+      subjects: selectedSubjects,
+      conditions: selectedConditions,
+      department: selectedDepartment,
+      catalogNumber: selectedCatalogNumber,
+    });
+
+    // Close the drawer
+    toggleDrawer();
+  };
+
+
   {/* Subjects for now */}
+  // const subjects = [
+  //   'math',
+  //   'english',
+  //   'science',
+  //   'visual and performing arts',
+  //   'first-year signature course',
+  //   'government',
+  //   'history'
+  // ];
   const subjects = [
-    'math',
-    'english',
-    'science',
-    'visual and performing arts',
-    'first-year signature course',
-    'government',
-    'history'
+    'Fiction',
+    'Non-Fiction',
+    'Reference',
   ];
 
-  {/* Conditions for now */}
-  const conditions = [
-    'brand new',
-    'like new',
-    'gently used',
-    'fairly used',
-    'heavily used'
+  {/* Departments for now */}
+
+  const department = [
+    'Arts',
+    'Science',
+    'History',
   ];
+
+  const catalogNumber = [
+    'ISBN',
+    'UPC',
+    'SKU',
+  ]
+
+  {/* Conditions for now */}
+  // const conditions = [
+  //   'brand new',
+  //   'like new',
+  //   'gently used',
+  //   'fairly used',
+  //   'heavily used'
+  // ];
+const conditions = [
+  'New',
+  "Like New",
+  "Good",
+  "Fair"
+]
+
 
   return (
     <>
@@ -133,16 +182,32 @@ const SideSearchTab = () => {
             <VStack align="stretch" mb={4}>
                 <Text fontSize="lg">Deparment</Text>
                 <Select 
-                    name="department" 
-                    placeholder="Select a Department" 
-                    bg={'rgb(195, 195, 195)'}
-                    variant="filled" 
-                    size="md"
+                    value={selectedDepartment}
+                    onChange={(e) => setSelectedDepartment(e.target.value)}
                 >
-                    <option value="Arts">Arts</option>
-                    <option value="Science">Science</option>
-                    <option value="History">History</option>
+                    <option value="">Select a Department</option> {/* Placeholder option */}
+                    {department.map((number) => (
+                      <option key={number} value={number}>
+                        {number}
+                      </option>
+                    ))}
                 </Select>
+            </VStack>
+
+            {/* Catalog Number Section */}
+            <VStack align="stretch" mb={4}>
+              <Text fontSize="lg">Catalog Number</Text>
+              <Select
+                value={selectedCatalogNumber}
+                onChange={(e) => setSelectedCatalogNumber(e.target.value)}
+              >
+                <option value="">Select a Catalog Number</option> {/* Placeholder option */}
+                {catalogNumber.map((number) => (
+                  <option key={number} value={number}>
+                    {number}
+                  </option>
+                ))}
+              </Select>
             </VStack>
 
             {/* Condition Section */}
@@ -171,7 +236,7 @@ const SideSearchTab = () => {
               mt={4} 
               width="full"
               borderRadius="full"
-              onClick={toggleDrawer}
+              onClick={handleApplyFilters}
             >
               Apply Filters
             </Button>

@@ -34,6 +34,8 @@ import { useEffect } from 'react';
 import Banner from '../components/Banner';
 import { useAuth } from "../contexts/AuthContext";
 import InfiniteScroll from 'react-infinite-scroll-component';
+import Navbar from '../components/Navbar';
+
 
 
 const BookCard = ({ book, onToggleFavorite, currentUser }) => {
@@ -386,7 +388,18 @@ const HomePage = () => {
   // const toast = useToast();
   const [page, setPage] = useState(1); // Track the current page
   const [hasMore, setHasMore] = useState(true); // Track if more products are available
-
+ 
+  const [filteredBooks, setFilteredBooks] = useState([]); // Filtered books
+  const [gotOriginalBooks, setGotOriginalBooks] = useState(false); // Track if original books are fetched
+  const [searchQuery, setSearchQuery] = useState(""); // Search query
+  
+  
+  // filter states:
+  const [selectedSubjects, setSelectedSubjects] = useState([]);
+  const [selectedConditions, setSelectedConditions] = useState([]);
+  const [selectedDepartment, setSelectedDepartment] = useState(""); // Track selected department
+  const [selectedCatalogNumber, setSelectedCatalogNumber] = useState(""); // Track selected catalog number
+  
 
   // Fetch products for the current page
   const fetchMoreProducts = async () => {
@@ -405,6 +418,13 @@ const HomePage = () => {
           product.status !== "sold"
       );
       setBooks(filteredProducts); // Append new products to the list
+
+      // THIS SOLVES OUR "1st filter doesn't work" problem!!!!
+      setTimeout(() => {
+        setFilteredBooks(filteredProducts); // Initialize filteredBooks
+        setGotOriginalBooks(true); // Ensure this runs only once
+      }, 500); 
+      // console.log("filteredBooks TEST INTRO?: ", filteredBooks);
       // setPage((prevPage) => prevPage + 1); // Increment the page number
     } catch (error) {
       console.error("Error fetching products:", error);
@@ -415,36 +435,118 @@ const HomePage = () => {
     if (currentUser) {
       fetchMoreProducts(); // Load the first page of products
     }
-  }, []);
+    if (books.length > 0 && !gotOriginalBooks) {
+      setFilteredBooks(books); // Store the original books
+      setGotOriginalBooks(true); // Ensure this runs only once
+      console.log("filteredBooks initialized:", books);
+    }
+  }, [gotOriginalBooks]);
 
-  // Fetch products from Firestore when the component mounts
-  // useEffect(() => {
-  //   const loadProducts = async () => {
-  //     try {
-  //       const cachedProducts = localStorage.getItem("products");
-  //       console.log("Cached products:", cachedProducts); // Debugging line
-  //       if (cachedProducts) {
-  //         setBooks(JSON.parse(cachedProducts)); // Use cached data
-  //         return;
-  //       }
+  // Handle search input WORKS NOW!!!!
+  const handleSearchInput = (e) => {
+    setSearchQuery(e.target.value);
 
-  //       const products = await fetchProducts(); // Fetch products from Firestore
-  //       setBooks(products); // Update the state with fetched products
-  //       localStorage.setItem("products", JSON.stringify(products)); // Cache the data
-  //     } catch (error) {
-  //       console.error("Error fetching products:", error);
-  //       toast({
-  //         title: "Error",
-  //         description: "Failed to load products. Please try again later.",
-  //         status: "error",
-  //         duration: 3000,
-  //         isClosable: true,
-  //       });
-  //     }
-  //   };
+    if (!gotOriginalBooks) {
+      setFilteredBooks(books); // Store the original books before filtering
+      setGotOriginalBooks(true); // Set the flag to true after storing original books
+    }
+  };
 
-  //   loadProducts();
-  // }, []);
+  // Handle search on Enter key press
+  const handleSearchKeyDown = (e) => {
+    if (e.key === "Enter") {
+      if (searchQuery.trim() === "") {
+        // If the search query is empty, reset to show all books
+        // console.log("filteredBooks: ", filteredBooks);
+        // console.log("books: ", books);
+        setBooks(filteredBooks);
+      } else {
+        // setFilteredBooks(books); // Reset to show all books before filtering
+        // Filter books based on the search query
+        const filtered = books.filter((book) =>
+          book.name?.toLowerCase().startsWith(searchQuery.toLowerCase())
+        );
+        setBooks(filtered); // Update the books state with the filtered results
+      }
+    }
+  };
+
+  const handleApplyFilters = () => {
+
+    // if (!filteredBooks || filteredBooks.length === 0) {
+    //   console.log("FilteredBooks is not initialized yet.");
+    //   return; // Prevent filtering if filteredBooks is not initialized
+    // }
+
+    const filters = {
+      subjects: selectedSubjects,
+      conditions: selectedConditions,
+      department: selectedDepartment,
+      catalogNumber: selectedCatalogNumber,
+    };
+
+    console.log("Wave 1");
+    // VERY IMPORTANT, makes sure the orignal books are stored (before filering)
+    if (!gotOriginalBooks) {
+      setFilteredBooks(books);
+      setGotOriginalBooks(true);
+    }
+
+    // Check if all filters are empty
+    const noFiltersSelected =
+    (!filters.subjects || filters.subjects.length === 0) &&
+    (!filters.conditions || filters.conditions.length === 0) &&
+    !filters.department &&
+    !filters.catalogNumber;
+
+    console.log("subjects: ", filters.subjects);
+    console.log("conditions: ", filters.conditions);
+    console.log("department: ", filters.department);
+    console.log("catalogNumber: ", filters.catalogNumber);
+    console.log("noFiltersSelected: ", noFiltersSelected);
+    console.log("filteredBooks: ", filteredBooks);
+    console.log("Wave 2")
+    if (noFiltersSelected) {
+      // Reset to filteredBooks if no filters are selected
+      setBooks(filteredBooks);
+      resetFilters();
+      return;
+    }
+
+    console.log("Wave 3")
+    let filtered = [...filteredBooks]
+    console.log("filtered: ", filtered);
+  
+    if (filters.subjects && filters.subjects.length > 0) {
+      filtered = filtered.filter((book) => filters.subjects.includes(book.subject));
+    }
+
+    if (filters.conditions && filters.conditions.length > 0) {
+      filtered = filtered.filter((book) => filters.conditions.includes(book.condition));
+    }
+
+    if (filters.department) {
+      filtered = filtered.filter((book) =>
+        book.department?.toLowerCase() === filters.department.toLowerCase()
+      );
+    }
+
+    if (filters.catalogNumber) {
+      filtered = filtered.filter((book) =>
+        book.catalogNumber?.toLowerCase() === filters.catalogNumber.toLowerCase()
+      );
+    }
+  
+    setBooks(filtered);
+    resetFilters();
+  };
+
+  const resetFilters = () => {
+    setSelectedSubjects([]); // Reset subjects to an empty array
+    setSelectedConditions([]); // Reset conditions to an empty array
+    setSelectedDepartment(""); // Reset department to an empty string
+    setSelectedCatalogNumber(""); // Reset catalog number to an empty string
+  };
 
   const handleToggleFavorite = (bookId) => {
     setBooks(prevBooks => 
@@ -456,46 +558,26 @@ const HomePage = () => {
     );
   };
 
-  // Myshae's previous code
-  // const [ products, setProducts ] = useState([]);
-  // const { currentUser } = useAuth();
-  // // const navigate = useNavigate();
-
-  // const fetchProductsList = useCallback(async () => {
-  //   try {
-  //     const productsList = await fetchProducts();
-  //     setProducts(productsList);
-  //   } catch (error) {
-  //     console.error("Error fetching products: ", error);
-  //   }
-  // }, []);
-  
-  // useEffect(() => {
-  //   if (currentUser) {
-  //     fetchProductsList();
-  //   }
-  // }, [currentUser, fetchProductsList]);
-
-  // // Handler functions to pass to ProductCard
-  // const handleProductDelete = () => {
-  //   fetchProductsList(); // Re-fetch products after deletion
-  // };
-
-  // const handleProductUpdate = () => {
-  //   fetchProductsList(); // Re-fetch products after update
-  // };
-
-  // if (!currentUser) {
-  //   return <Navigate to="/login" replace />;
-  // }
-
   return (
     <>
-    <Banner />
     
+    <Navbar
+      searchQuery={searchQuery}
+      handleSearchInput={handleSearchInput}
+      handleSearchKeyDown={handleSearchKeyDown}
+    />
+    <Banner />
     <Flex>
-      
-      <SideSearchTab />
+      <SideSearchTab
+        selectedSubjects={selectedSubjects}
+        setSelectedSubjects={setSelectedSubjects}
+        selectedConditions={selectedConditions}
+        setSelectedConditions={setSelectedConditions}
+        selectedDepartment={selectedDepartment}
+        setSelectedDepartment={setSelectedDepartment}
+        selectedCatalogNumber={selectedCatalogNumber}
+        setSelectedCatalogNumber={setSelectedCatalogNumber}
+        onApplyFilters={handleApplyFilters} />
       <Box p={4} bg="gray.50" minHeight="100vh">
         <Grid 
           templateColumns={{
