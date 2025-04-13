@@ -44,7 +44,6 @@ import {
 } from '../services/api'; // 
 import { uploadProfileImage } from "../services/uploadProfileImage";
 import { updateUserProfile } from "../services/api";
-import { set } from 'mongoose';
 
 // individual book cards 
 //need to change modal to be differnt from home page modal. !!!
