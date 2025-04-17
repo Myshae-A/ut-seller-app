@@ -1,7 +1,7 @@
 // Update with your backend URL, make sure to swtich to this for prouction
-const API_URL = 'https://ut-seller-app-backend.vercel.app/api'; 
+// const API_URL = 'https://ut-seller-app-backend.vercel.app/api'; 
 
-// const API_URL = 'http://localhost:5000/api'; // Update with your backend URL, for testing locally
+const API_URL = 'http://localhost:5000/api'; // Update with your backend URL, for testing locally
 
 export const fetchProducts = async () => {
     try {
