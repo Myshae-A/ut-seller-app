@@ -21,7 +21,7 @@ function App() {
   return (
     <AuthProvider>
       <Box minH={"100vh"} bg={useColorModeValue("gray.100", "gray.900")}>
-        {showNavbar && <Navbar />}
+        {/* {showNavbar && <Navbar />} */}
         <Routes>
           <Route path="/" element={<Navigate to="/login" replace />} />
           <Route path="/signup" element={<SignUpPage />} />

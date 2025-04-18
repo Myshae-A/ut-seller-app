@@ -24,6 +24,8 @@ import { uploadImage } from '../services/uploadImage'; // Assuming you have a fu
 import { useNavigate } from 'react-router-dom';
 import { addProductToGlobal, addProductToUser } from '../services/api'; // uploadImage
 import { useAuth } from '../contexts/AuthContext'; // Assuming you have an AuthContext to get the current user
+import Navbar from '../components/Navbar';
+
 
 const CreatePage = () => {
 
@@ -159,10 +161,10 @@ const CreatePage = () => {
         image: uploadedImageUrls[0], // Main image is the first one
         additionalImages: uploadedImageUrls.slice(1).filter(url => url), // Additional images
         createdAt: new Date().toUTCString(),
-        beenSold: false,
         userPosted: currentUser.uid,
         usersRequested: [],
-        status: "posted"
+        status: "posted",
+        soldTo: "",
       };
       
       // Add the product to the global database of all products
@@ -188,20 +190,22 @@ const CreatePage = () => {
       
       // Reset the form
       setNewProduct({
-        name: "",
-        price: "",
-        image: "",
-        subject: "",
-        department: "",
-        condition: "",
-        catalogNumber: "",
-        description: "",
-        status: ""
+          name: "",
+          price: "",
+          image: "",
+          subject: "",
+          department: "",
+          condition: "",
+          catalogNumber: "",
+          description: "",
+          status: "",
+          soldTo: "",
       });
       setImageFiles(Array(4).fill(null));
       setImageUrls(Array(4).fill(""));
       
-      navigate("/home");
+      // go to your account page after posting/creating a product
+      navigate("/account");
     } catch (error) {
       console.error("Error adding product:", error);
       toast({
@@ -220,77 +224,212 @@ const CreatePage = () => {
   // const fileInputRefs = Array(4).fill().map(() => React.createRef());
 
   return (
-    <Box maxW="1000px" mx="auto" p={4} bg="white">
-      <Flex justify="space-between" align="center" mb={4}>
-      <Text 
-        fontSize="xl"
-        fontWeight="medium"
-        lineHeight="normal"
-      >
-        List A Book
-      </Text>
-      <IconButton
-        icon={<CloseIcon />}
-        size="sm"
-        borderRadius="full"
-        aria-label="Close"
-        bg="gray.200"
-        onClick={() => navigate("/home")}
+    <>
+      <Navbar
+        searchQuery={""}
+        handleSearchInput={() => {}}
+        handleSearchKeyDown={() => {}}
       />
-    </Flex>
-
-      <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
-        {/* Left side - Image upload area */}
-        <Box 
-          w={{ base: '80%', md: '60%' }} 
-          borderRadius="md"
-          position="relative"
-          pb={4}
+      <Box
+        maxW="1000px"
+        mx="auto"
+        p={4}
+        bg="white"
+        mt={8}
+      >
+        <Flex justify="space-between" align="center" mb={4}>
+        <Text 
+          fontSize="xl"
+          fontWeight="medium"
+          lineHeight="normal"
         >
-          <Grid templateColumns="repeat(2, 1fr)" gap={4} p={4}>
-            {imageFiles.map((_, idx) => (
-              <GridItem key={idx}>
-                <Box 
-                  h="200px" 
-                  bg={placeholderBg} 
-                  borderRadius="md" 
-                  display="flex" 
-                  alignItems="center" 
-                  justifyContent="center"
-                  border="3px dashed"
-                  borderColor="gray.300"
-                  cursor="pointer"
-                  onClick={() => document.getElementById(`file-input-${idx}`).click()}
-                  overflow="hidden"
-                >
-                  {imageUrls[idx] ? (
-                    <Image 
-                      src={imageUrls[idx]} alt={`Preview ${idx}`} boxSize="100%"
-                      // alt={`Book image ${idx + 1}`} 
-                      objectFit="cover"
-                      w="100%"
-                      h="100%"
+          List A Book
+        </Text>
+        <IconButton
+          icon={<CloseIcon />}
+          size="sm"
+          borderRadius="full"
+          aria-label="Close"
+          bg="gray.200"
+          onClick={() => navigate("/home")}
+        />
+      </Flex>
+
+        <Flex direction={{ base: 'column', md: 'row' }} gap={4}>
+          {/* Left side - Image upload area */}
+          <Box 
+            w={{ base: '80%', md: '60%' }} 
+            borderRadius="md"
+            position="relative"
+            pb={4}
+          >
+            <Grid templateColumns="repeat(2, 1fr)" gap={4} p={4}>
+              {imageFiles.map((_, idx) => (
+                <GridItem key={idx}>
+                  <Box 
+                    h="200px" 
+                    bg={placeholderBg} 
+                    borderRadius="md" 
+                    display="flex" 
+                    alignItems="center" 
+                    justifyContent="center"
+                    border="3px dashed"
+                    borderColor="gray.300"
+                    cursor="pointer"
+                    onClick={() => document.getElementById(`file-input-${idx}`).click()}
+                    overflow="hidden"
+                  >
+                    {imageUrls[idx] ? (
+                      <Image 
+                        src={imageUrls[idx]} alt={`Preview ${idx}`} boxSize="100%"
+                        // alt={`Book image ${idx + 1}`} 
+                        objectFit="cover"
+                        w="100%"
+                        h="100%"
+                      />
+                    ) : (
+                      <VStack spacing={1}>
+                        <Box as="span" fontSize="xl">🖼️</Box>
+                        <Text fontSize="xs" color="gray.500">add an image</Text>
+                      </VStack>
+                    )}
+                    <Input
+                      id={`file-input-${idx}`}
+                      type="file"
+                      // ref={fileInputRefs[idx]}
+                      accept="image/*"
+                      style={{ display: 'none' }}
+                      onChange={handleImageSelect(idx)}
                     />
-                  ) : (
-                    <VStack spacing={1}>
-                      <Box as="span" fontSize="xl">🖼️</Box>
-                      <Text fontSize="xs" color="gray.500">add an image</Text>
-                    </VStack>
-                  )}
-                  <Input
-                    id={`file-input-${idx}`}
-                    type="file"
-                    // ref={fileInputRefs[idx]}
-                    accept="image/*"
-                    style={{ display: 'none' }}
-                    onChange={handleImageSelect(idx)}
-                  />
-                </Box>
-              </GridItem>
-            ))}
-          </Grid>
-        </Box>
+                  </Box>
+                </GridItem>
+              ))}
+            </Grid>
+          </Box>
+          
+          {/* Right side - Book details form */}
+          <Box 
+            h="200px" 
+            w={{ base: '100%', md: '40%' }} 
+            borderRadius="md"
+            pb={4}
+            position="relative"
+          >
+            <VStack spacing={4} p={4} align="stretch">
+              <FormControl>
+                <Input 
+                  name="name" 
+                  value={newProduct.name}
+                  onChange={handleInputChange}
+                  variant="filled" 
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  placeholder="Title" 
+                />
+              </FormControl>
+              
+              <FormControl maxWidth="40%">
+                <Input 
+                  name="price" 
+                  value={newProduct.price}
+                  onChange={handleInputChange}
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  variant="filled" 
+                  placeholder="Price" 
+                  type="number"
+                />
+              </FormControl>
+              
+              <Flex gap={2}>
+                <Select 
+                  name="subject" 
+                  value={newProduct.subject}
+                  onChange={handleInputChange}
+                  placeholder="Subject" 
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  variant="filled" 
+                  size="md"
+                >
+                  <option value="Fiction">Fiction</option>
+                  <option value="Non-Fiction">Non-Fiction</option>
+                  <option value="Reference">Reference</option>
+                </Select>
+                
+                <Select 
+                  name="department" 
+                  value={newProduct.department}
+                  onChange={handleInputChange}
+                  placeholder="Department" 
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  variant="filled" 
+                  size="md"
+                >
+                  <option value="Arts">Arts</option>
+                  <option value="Science">Science</option>
+                  <option value="History">History</option>
+                </Select>
+              </Flex>
+              
+              <Flex gap={2}>
+                <Select 
+                  name="condition" 
+                  value={newProduct.condition}
+                  onChange={handleInputChange}
+                  placeholder="Condition" 
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  variant="filled" 
+                  size="md"
+                >
+                  <option value="New">New</option>
+                  <option value="Like New">Like New</option>
+                  <option value="Good">Good</option>
+                  <option value="Fair">Fair</option>
+                </Select>
+                
+                <Select 
+                  name="catalogNumber" 
+                  value={newProduct.catalogNumber}
+                  onChange={handleInputChange}
+                  placeholder="Catalog Number" 
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  variant="filled" 
+                  size="md"
+                >
+                  <option value="ISBN">ISBN</option>
+                  <option value="UPC">UPC</option>
+                  <option value="SKU">SKU</option>
+                </Select>
+              </Flex>
+              
+              <FormControl>
+                <Textarea 
+                  name="description"
+                  value={newProduct.description}
+                  onChange={handleInputChange}
+                  placeholder="Description" 
+                  bg={'gray.300'}
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                  variant="filled" 
+                  size="md" 
+                />
+              </FormControl>
+            </VStack>
+          </Box>
+        </Flex>
         
+<<<<<<< HEAD
         {/* Right side - Book details form */}
         <Box 
           h="200px" 
@@ -430,7 +569,26 @@ const CreatePage = () => {
         </Button>
       </Flex>
     </Box>
+=======
+        {/* Upload button */}
+        <Flex justify="flex-end" mt={4}>
+          <Button 
+            bgColor={"rgb(221, 147, 51)"} 
+            size="md" 
+            px={10}
+            position="relative"
+            onClick={handleAddProduct}
+            isLoading={isUploading}
+            loadingText="Uploading"
+          >
+            Upload
+          </Button>
+        </Flex>
+      </Box>
+    </>
+>>>>>>> 566720ca2a6086c9b8bb4e111f6471ff6f9e7ccd
   );
+  
 };
 
 export default CreatePage;

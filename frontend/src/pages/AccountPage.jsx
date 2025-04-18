@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 // import american from '../images/american.jpg';
 // import linear from '../images/linear.jpg';
 import Navbar from '../components/Navbar'
@@ -35,14 +35,29 @@ import {
   useToast
 } from '@chakra-ui/react';
 import { AddIcon, StarIcon } from '@chakra-ui/icons';
-import { fetchProducts } from '../services/api';
+import {
+  fetchProducts,
+  fetchProductById,
+  fetchUserProducts,
+  getUserNameFromID,
+  updateBookSoldByToOther,
+} from '../services/api'; // 
 import { uploadProfileImage } from "../services/uploadProfileImage";
 import { updateUserProfile } from "../services/api";
 
 // individual book cards 
 //need to change modal to be differnt from home page modal. !!!
-const BookCard = ({ book, onToggleFavorite }) => {
+const BookCard = ({ book, onToggleFavorite, postedNotifications,
+  handleSellingTo, handleFinalizeSell, selectedUserId, setSelectedUserId  }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
+  
+
+  // const userRequestedNames = useMemo(() => {
+  //   return book.usersRequested.map((id) => ({
+  //     id,
+  //     name: getUserNameFromID(id) || "blank",
+  //   }));
+  // }, [book.usersRequested]);
 
   return (
     <>
@@ -55,6 +70,7 @@ const BookCard = ({ book, onToggleFavorite }) => {
         alignItems="center"
         cursor="pointer"
         onClick={onOpen}
+        position="relative"
       >
         <Box 
           width="100%" 
@@ -70,6 +86,81 @@ const BookCard = ({ book, onToggleFavorite }) => {
             width="full"
             height="full"
           />
+
+          {/* Overlay for Sold Products */}
+          {book.status === "sold" && (
+            <Box
+              position="absolute"
+              top={0}
+              left={0}
+              width="100%"
+              height="100%"
+              bg="rgba(0, 0, 0, 0.5)" // Transparent gray background
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              borderRadius={15}
+              zIndex={1} // Ensure it appears above the image
+            >
+              <Text
+                fontSize="2xl"
+                fontWeight="bold"
+                color="orange.400"
+                textAlign="center"
+              >
+                SOLD
+              </Text>
+            </Box>
+          )}
+
+          {/* Overlay for Sold Products */}
+          {book.status === "bought" && (
+            <Box
+              position="absolute"
+              top={0}
+              left={0}
+              width="100%"
+              height="100%"
+              bg="rgba(0, 0, 0, 0.5)" // Transparent gray background
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              borderRadius={15}
+              zIndex={1} // Ensure it appears above the image
+            >
+              <Text
+                fontSize="2xl"
+                fontWeight="bold"
+                color="green.400"
+                textAlign="center"
+              >
+                BOUGHT
+              </Text>
+            </Box>
+          )}
+
+          {/* Red Dot for Notifications */}
+          {postedNotifications !== undefined &&  // Check if postedNotifications is defined
+          postedNotifications[book.id] && (
+            <Box
+              position="absolute"
+              top="4px"
+              right="4px"
+              bg="red.500"
+              color="white"
+              borderRadius="full"
+              width="28px"
+              height="28px"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              fontSize="sm"
+              fontWeight="bold"
+              border="2px solid black"
+            >
+              {postedNotifications[book.id]} {/* Display the count */}
+            </Box>
+          )}
 
           <button
             onClick={(e) => {
@@ -224,21 +315,47 @@ const BookCard = ({ book, onToggleFavorite }) => {
                     )}
                   </Flex>
                 
-                {/*NO FUNCTIONALTY*/}
-                  <Select 
-                    name="status"
-                    placeholder="Select Status..." 
-                    bg={'gray.300'}
-                    _hover={{ bg: 'gray.400' }}
-                    _focus={{ bg: 'gray.400' }}
-                    variant="filled" 
+                  {/* Displays Book Status*/}
+                  <Text
+                    fontWeight="bold"
+                    fontSize="md"
+                    bg="gray.300"
                     borderRadius={30}
-                    size="md"
+                    p={2}
+                    textAlign="center"
                   >
-                    <option value="Fiction">Sold</option>
-                    <option value="Non-Fiction">Selling</option>
-                    <option value="Reference">On Hold</option>
-                  </Select>
+                    {book.status ? book.status.charAt(0).toUpperCase() + book.status.slice(1) : "No Status"}
+                  </Text>
+
+                  {/* Confirm Sell Button */}
+                  {book.status === 'posted' && book.usersRequested && book.usersRequested.length > 0 && (
+                    <Box mt={4}>
+                      <Text fontWeight="bold" fontSize="sm" mb={2}>
+                        Confirm Sell?
+                      </Text>
+                      <Select
+                        placeholder="Select a user"
+                        onChange={(e) => setSelectedUserId(e.target.value)}
+                        bg="gray.100"
+                        borderRadius={10}
+                        mb={2}
+                      >
+                        {book.usersRequested.map((displayName, idx) => (
+                          <option key={idx} value={displayName}>
+                            {displayName}
+                          </option>
+                        ))}
+                      </Select>
+                      <Button
+                        size="sm"
+                        colorScheme="orange"
+                        onClick={() => handleFinalizeSell(book.id, selectedUserId)}
+                        isDisabled={!selectedUserId}
+                      >
+                        Confirm
+                      </Button>
+                    </Box>
+                  )}
                 </Box>
 
                 <Box mt={4}>
@@ -311,11 +428,42 @@ const BookCard = ({ book, onToggleFavorite }) => {
 
 const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
     // const [books, setBooks] = useState(sampleBooks);
+    
     const [books, setBooks] = useState([]); // Initialize books state
+    const [requestedBooks, setRequestedBooks] = useState([]);
+    const [boughtBooks, setBoughtBooks] = useState([]);
+    const [soldBooks, setSoldBooks] = useState([]);
+    const [postedBooks, setPostedBooks] = useState([]);
+    const [savedBooks, setSavedBooks] = useState([]);
+
+
+    // newer variables
+    const [postedNotifications, setPostedNotifications] = useState({});
+    const [selectedUserId, setSelectedUserId] = useState(null);
+    const [profileImage, setProfileImage] = useState(""); // currentUser?.profileImage || 
+
+
     const navigate = useNavigate();
-    const { logout, currentUser } = useAuth();
-    const [profileImage, setProfileImage] = useState(currentUser?.profileImage || "");
+    const { currentUser, authBooksRequested } = useAuth();
     const toast = useToast();
+    // const [triggerName, setTriggerName] = useState();
+
+    
+    // useEffect(() => {
+    //   if (currentUser) {
+    //     console.log("Current User updated:", currentUser.displayName);
+    //     setTriggerName(currentUser.displayName); // Increment trigger to force re-render
+    //   }
+      
+    // }, [currentUser]);
+
+
+    // const boughtBooks = books.filter(book => book.status === 'bought');
+    // const soldBooks = books.filter(book => book.status === 'sold');
+    // const postedBooks = books.filter(book => book.status === 'posted');
+    // const requestedBooks = books.filter(book => book.status === 'requested');
+    // const requestedBooks = [];
+    // const savedBooks = books.filter(book => book.status === 'saved');
 
     // OHHH the problem is the name specifically has to be "currentUser", not just "user" !!!
     const handleProfileImageChange = async (e) => {
@@ -366,25 +514,87 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
             console.error("User is not defined");
             return;
           }
-          // console.log("here fetching books");
-          const data = await fetchProducts(); // Adjust the URL as needed
-          // const data = await response.json();
 
-          // console.log("here is the data: ", data);
-          // console.log("here is the user: ", data[0].userPosted);
+          const data = await fetchUserProducts(currentUser.uid); // Adjust the URL as needed
+          
+          const list = [];
+          for (let i = 0; i < data.length; i++) {
+            list.push(data[i]); // Add each requested book to the array
+          }
+          setBooks(list); // Set the fetched books to state
 
-          // console.log(currentUser.uid);
-          // filter books to include only those that belong to the logged-in user
-          const userBooks = data.filter(product => product.userPosted === currentUser.uid); // Assuming each book has a userId field
-          setBooks(userBooks); // Set the fetched books to state
-          // setBooks(data); // Uncomment this line if you want to fetch all books
+          const requestList = [];
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].status === 'requested') {
+              requestList.push(data[i]);
+            }
+          }
+          setRequestedBooks(requestList);
+
+          const postedList = [];
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].status === 'posted') {
+              postedList.push(data[i]);
+            }
+          }
+          setPostedBooks(postedList);
+
+          const boughtList = [];
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].status === 'bought') {
+              boughtList.push(data[i]);
+            }
+          }
+          setBoughtBooks(boughtList);
+
+          const soldList = [];
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].status === 'sold') {
+              soldList.push(data[i]);
+            }
+          }
+          setSoldBooks(soldList);
+
+          const savedList = [];
+          for (let i = 0; i < data.length; i++) {
+            if (data[i].status === 'saved') {
+              savedList.push(data[i]);
+            }
+          }
+          setSavedBooks(savedList);
 
         } catch (error) {
           console.error('Error fetching books:', error);
         }
       };
       fetchBooks();
+      
+
     }, []);
+
+    
+  //   const generateRequestedBooks = async () => {
+  //     // onClick={() => generateRequestedBooks()}
+  //     const list = [];
+  //     console.log("authBooksRequested: ", authBooksRequested);
+  //     console.log("requestedBooks: ", requestedBooks);
+  //     for (let i = 0; i < authBooksRequested.length; i++) {
+  //       try {
+  //         console.log("authBooksRequested[i].id: ", authBooksRequested[i].id);
+  //         const book = await fetchProductById(authBooksRequested[i].id); // Fetch each book by ID
+  //         list.push(book);
+  //         console.log("GENERATE REQUEST BOOKS: ", book);
+  //       } catch (error) {
+  //         console.error('Error fetching requested book:', error);
+  //       }
+  //     }
+  // }
+
+    useEffect(() => {
+      if (postedBooks.length > 0) {
+        checkPostedNotifications(); // Run only when postedBooks is updated
+      }
+    }, [postedBooks]);
 
     // Function to toggle favorite status
     const handleToggleFavorite = (bookId) => {
@@ -397,57 +607,114 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
       );
     };
 
-    useEffect(() => { // ensures the products still load after
-      const loadBooks = async () => {
-          try {
-              // Check if products are already saved in localStorage
-              const savedBooks = localStorage.getItem('books');
-              if (savedBooks) {
-                  setBooks(JSON.parse(savedBooks)); // Load books from localStorage
-                  return;
-              }
+  //   useEffect(() => { // ensures the products still load after
+  //     const loadBooks = async () => {
+  //         try {
+  //             // Check if products are already saved in localStorage
+  //             const savedBooks = localStorage.getItem('books');
+  //             if (savedBooks) {
+  //                 setBooks(JSON.parse(savedBooks)); // Load books from localStorage
+  //                 return;
+  //             }
 
-              // Fetch products from the backend
-              if (!currentUser) {
-                  console.error("User is not defined");
-                  return;
-              }
+  //             // Fetch products from the backend
+  //             if (!currentUser) {
+  //                 console.error("User is not defined");
+  //                 return;
+  //             }
 
-              const data = await fetchProducts();
-              const userBooks = data.filter((product) => product.userPosted === currentUser.uid);
-              setBooks(userBooks);
+  //             const data = await fetchProducts();
+  //             const userBooks = data.filter((product) => product.userPosted === currentUser.uid);
+  //             setBooks(userBooks);
 
-              // Save fetched books to localStorage
-              localStorage.setItem('books', JSON.stringify(userBooks));
-          } catch (error) {
-              console.error('Error fetching books:', error);
-          }
-      };
+  //             // Save fetched books to localStorage
+  //             localStorage.setItem('books', JSON.stringify(userBooks));
+  //         } catch (error) {
+  //             console.error('Error fetching books:', error);
+  //         }
+  //     };
 
-      loadBooks();
-  }, [currentUser]);
+  //     loadBooks();
+  // }, [currentUser]);
+  
 
-    // Function to handle logout
-    const handleLogout = async () => {
+    const checkPostedNotifications = async () => {
+      const postedNotificationsList = {};
+
+      postedBooks.forEach((book) => {
+        if (book.usersRequested && book.usersRequested.length > 0) {
+          postedNotificationsList[book.id] = book.usersRequested.length; // Store the count of requests for each book
+        }
+      });
+
+      console.log("FORMAT for postedNoficiationsList: ", postedNotificationsList);
+      setPostedNotifications(postedNotificationsList);
+      console.log("books posted w notifications: "+postedNotificationsList.length)
+    };
+
+
+    const sellingTo = async (bookId, userId) => {
+      console.log("Selling to user ID: ", userId);
+      console.log("Selling book ID: ", bookId);
+      
+    }
+
+    const finalizeSell = async (bookId, userId) => {
       try {
-        await logout(); // Call the logout function
-        navigate('/login'); // Redirect to the login page
+        // Log the selected book and user
+        console.log(`Confirming sale for Book ID: ${bookId}, User ID: ${userId}`);
+        
+        // setBoughtBooks((prevBoughtBooks) => {
+        const bookToAdd = books.find((book) => book.id === bookId);
+        setSoldBooks((prevSoldBooks) => [
+          ...prevSoldBooks,
+          { ...bookToAdd, status: "sold", soldTo: userId }, // Update status and add soldTo field
+        ]);
+
+        // console.log("Sold By This user: ", currentUser.uid);
+        // console.log("Book being sold: ", bookId);
+        // console.log("User being sold to: ", userId);
+
+        // does all the work in the backend!!! VERY IMPORTANT!!!
+        await updateBookSoldByToOther(currentUser.uid, bookId, userId);
+
+        // currently doing these in frontend, but need to do it in BACKEND TOO!
+        // Update the book's status in the state
+        setBooks((prevBooks) =>
+          prevBooks.map((book) =>
+            book.id === bookId
+              ? { ...book, status: "sold", soldTo: userId } // Update status and add soldTo field
+              : book
+          )
+        );
+    
+        setPostedBooks((prevPostedBooks) =>
+          prevPostedBooks.filter((book) => book.id !== bookId) // Remove the book from postedBooks
+        );
+
+        console.log("Sale confirmed successfully!");
       } catch (error) {
-        console.error('Error logging out:', error);
+        console.error("Error confirming sale:", error);
       }
     };
-  
-    const boughtBooks = books.filter(book => book.status === 'bought');
-    const soldBooks = books.filter(book => book.status === 'sold');
-    const postedBooks = books.filter(book => book.status === 'posted');
-    const requestedBooks = books.filter(book => book.status === 'requested');
-    const savedBooks = books.filter(book => book.status === 'saved');
+
+
+    // // Function to handle logout
+    // const handleLogout = async () => {
+    //   try {
+    //     await logout(); // Call the logout function
+    //     navigate('/login'); // Redirect to the login page
+    //   } catch (error) {
+    //     console.error('Error logging out:', error);
+    //   }
+    // };
   
     return (  
         <Box bg="white">
             <Navbar />
                 {/* Profile Section */}
                 <Container maxWidth="60%" pt="6" pb="4" >
+
                     <Flex direction="row" align="center" gap={8} justify="flex-start">
                         <Box>
                           <label htmlFor="profile-image-input" >
@@ -470,23 +737,12 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         </Box>
                     
                         <Box>
-                            <Text fontSize="xl">{currentUser?.displayName || "User"}</Text>
+                            <Text fontSize="xl">{currentUser?.displayName || (currentUser?.email ? currentUser.email.split("@")[0] : "User")}</Text>
                             <Text color="gray.600" fontSize="md">{currentUser?.email || "No email available"}</Text>
                         </Box>
-
-                        {/* Logout Button */}
-                        <Button
-                          bgColor="#DD8533"
-                          color="white"
-                          fontWeight={"light"}
-                          borderRadius={25}
-                          px={10}
-                          onClick={handleLogout}
-                          _hover={{ bgColor: "rgba(221, 147, 51, 0.4)" }}
-                        >
-                          Log Out
-                        </Button>
+                        
                     </Flex>
+                    
                 </Container>
 
                 {/* Tabs Section */}
@@ -507,7 +763,16 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         <TabPanel>
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
                             {books.length > 0 ? books.map((book) => (
-                            <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                            <BookCard 
+                              key={book.id}
+                              book={book}
+                              onToggleFavorite={handleToggleFavorite}
+                              postedNotifications={postedNotifications}
+                              handleSellingTo={sellingTo}
+                              handleFinalizeSell={finalizeSell}
+                              selectedUserId={selectedUserId}
+                              setSelectedUserId={setSelectedUserId}
+                            />
                             ))
                             :
                             <Text textAlign="center" color="gray.500" width="200%">No items to display</Text>
@@ -520,7 +785,16 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
                             {boughtBooks.length > 0 ?
                             boughtBooks.map((book) => (
-                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                              <BookCard 
+                                key={book.id}
+                                book={book}
+                                onToggleFavorite={handleToggleFavorite}
+                                postedNotifications={postedNotifications}
+                                handleSellingTo={sellingTo}
+                                handleFinalizeSell={finalizeSell}
+                                selectedUserId={selectedUserId}
+                                setSelectedUserId={setSelectedUserId}
+                              />
                             ))
                             :
                             <Text textAlign="center" color="gray.500" width="200%">No bought items to display</Text>
@@ -533,7 +807,16 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
                             {soldBooks.length > 0 ? 
                             soldBooks.map((book) => (
-                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                                <BookCard 
+                                  key={book.id}
+                                  book={book}
+                                  onToggleFavorite={handleToggleFavorite}
+                                  postedNotifications={postedNotifications}
+                                  handleSellingTo={sellingTo}
+                                  handleFinalizeSell={finalizeSell}
+                                  selectedUserId={selectedUserId}
+                                  setSelectedUserId={setSelectedUserId}
+                                />
                             ))
                             :
                             <Text textAlign="center" color="gray.500" width="200%">No sold items to display</Text>
@@ -546,7 +829,16 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
                             {postedBooks.length > 0 ?
                             postedBooks.map((book) => (
-                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                                <BookCard
+                                  key={book.id}
+                                  book={book}
+                                  onToggleFavorite={handleToggleFavorite}
+                                  postedNotifications={postedNotifications}
+                                  handleSellingTo={sellingTo}
+                                  handleFinalizeSell={finalizeSell}
+                                  selectedUserId={selectedUserId}
+                                  setSelectedUserId={setSelectedUserId}
+                                />
                             ))
                             :
                             <Text textAlign="center" color="gray.500" width="200%">No posted items to display</Text>
@@ -559,7 +851,16 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
                             {requestedBooks.length > 0 ?
                             requestedBooks.map((book) => (
-                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                              <BookCard 
+                                key={book.id}
+                                book={book}
+                                onToggleFavorite={handleToggleFavorite}
+                                postedNotifications={postedNotifications}
+                                handleSellingTo={sellingTo}
+                                handleFinalizeSell={finalizeSell}
+                                selectedUserId={selectedUserId}
+                                setSelectedUserId={setSelectedUserId}
+                              />
                             ))
                             :
                             <Text textAlign="center" color="gray.500" width="200%">No requested items to display</Text>
@@ -572,7 +873,16 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                         <SimpleGrid columns={{ base: 2, sm: 3, md: 4, lg: 5 }} spacing="4">
                             {savedBooks.length > 0 ? 
                             savedBooks.map((book) => (
-                                <BookCard key={book.id} book={book} onToggleFavorite={handleToggleFavorite} />
+                              <BookCard 
+                                key={book.id}
+                                book={book}
+                                onToggleFavorite={handleToggleFavorite}
+                                postedNotifications={postedNotifications}
+                                handleSellingTo={sellingTo}
+                                handleFinalizeSell={finalizeSell}
+                                selectedUserId={selectedUserId}
+                                setSelectedUserId={setSelectedUserId}
+                              />
                             ))
                             :
                             <Text textAlign="center" color="gray.500" width="200%">No saved items to display</Text>

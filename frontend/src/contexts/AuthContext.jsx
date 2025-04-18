@@ -10,7 +10,7 @@ import {
     
 } from "firebase/auth";
 import { auth } from '../services/firebase-client';
-import { registerUser } from '../services/api';
+import { registerUser, getUserRequestedBooksIds } from '../services/api';
 
 import { registerGoogleUser } from '../services/api';
 
@@ -29,6 +29,11 @@ export function AuthProvider({ children }) {
     const navigate = useNavigate();
     const [currentUser, setCurrentUser] = useState(null);
     const [loginError, setLoginError] = useState(null);
+    const [authBooksRequested, setAuthBooksRequested] = useState([]);
+
+    const updateBooksRequested = (book) => {
+        setAuthBooksRequested((prev) => [...prev, book]);
+    };
 
     // Listen for auth state changes
     useEffect(() => {
@@ -66,7 +71,7 @@ export function AuthProvider({ children }) {
             
             const userCredential = await createUserWithEmailAndPassword(auth, email, password);
             const user = userCredential.user;
-            console.log("User created? :", user);
+            console.log("User created [AuthContext] :", user);
             
             // Call backend API to create user document
             const { success, message } = await registerUser(email, password);
@@ -86,7 +91,12 @@ export function AuthProvider({ children }) {
     const login = async (email, password) => {
         try {
             setLoginError(null);
-            await signInWithEmailAndPassword(auth, email, password);
+            const user = await signInWithEmailAndPassword(auth, email, password);
+            const updatedUser = user.user;
+            updatedUser.displayName = updatedUser.email.split('@')[0]; // Set displayName to the part before '@'
+            console.log("User logged in?? (w normal email) [AuthContext] :", user);
+
+            setCurrentUser(updatedUser);
             navigate("/home");
             return { success: true, message: 'Login successful.' };
         } catch (error) {
@@ -122,7 +132,18 @@ export function AuthProvider({ children }) {
             }
 
             setCurrentUser(user);
-            
+
+            console.log("User created? :", user);
+            // console.log("user displayName: ", user.displayName);
+
+            console.log("BEFORE This user's requested list: ", authBooksRequested);
+            console.log("user uid: ", user.uid);
+            const test = await getUserRequestedBooksIds(user.uid);
+            console.log("test: ", test);
+            setAuthBooksRequested(test);
+            console.log("AFTER This user's requested list: ", authBooksRequested);
+
+
             // Call backend API to create user document
             const { success, message } = await registerGoogleUser(user.uid);
             if (!success) {
@@ -142,6 +163,8 @@ export function AuthProvider({ children }) {
     // By using this context, child components can easily access and use these without prop drilling.
     const value = {
         currentUser,
+        authBooksRequested,
+        updateBooksRequested,
         login,
         logout,
         register,
@@ -154,7 +177,8 @@ export function AuthProvider({ children }) {
     // Instead of manually passing down data and functions, components inside this provider can
     // simply use the useAuth() hook to access anything they need.
     return (
-        <AuthContext.Provider value={value}>
+        <AuthContext.Provider
+            value={value}>
             {children}
         </AuthContext.Provider>
     );
