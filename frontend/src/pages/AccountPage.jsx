@@ -3,6 +3,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 // import linear from '../images/linear.jpg';
 import Navbar from '../components/Navbar'
 import { FiFlag } from 'react-icons/fi';
+import { useClipboard } from '@chakra-ui/react';
 import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
@@ -55,6 +56,10 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [showReportOverlay, setShowReportOverlay] = useState(false);
 
+  const [showSharePopup, setShowSharePopup] = useState(false);
+  const shareUrl = `https://yourapp.com/listings/${book.id}`; // replace with actual URL
+  const { hasCopied, onCopy } = useClipboard(shareUrl);
+  const toast = useToast();
 
   // const userRequestedNames = useMemo(() => {
   //   return book.usersRequested.map((id) => ({
@@ -383,29 +388,101 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                       borderRadius={20}
                       p={5}
                     ></IconButton>
-                    <IconButton
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="15"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                        <Button
+                          bgColor="rgba(221, 147, 51, 0.47)"
+                          borderRadius={20}
+                          p={1}
+                          px={5}
+                          fontSize="sm"
+                          fontWeight="semibold"
+                          onClick={() => {
+                            onCopy();
+                            toast({
+                              title: "Link copied!",
+                              description: "The listing link has been copied to your clipboard.",
+                              status: "success",
+                              duration: 3000,
+                              isClosable: true,
+                            });
+                          }}
                         >
-                          <circle cx="18" cy="5" r="3" />
-                          <circle cx="6" cy="12" r="3" />
-                          <circle cx="18" cy="19" r="3" />
-                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                        </svg>
-                      }
-                      bgColor="rgba(221, 147, 51, 0.47)"
-                      borderRadius={20}
-                      p={5}
-                    />
+                          <Icon
+                            as={() => (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="18" cy="5" r="3" />
+                                <circle cx="6" cy="12" r="3" />
+                                <circle cx="18" cy="19" r="3" />
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                              </svg>
+                            )}
+                          />
+                        </Button>
+                  {showSharePopup && (
+                    <Box
+                      position="fixed"
+                      top="0"
+                      left="0"
+                      w="100vw"
+                      h="100vh"
+                      bg="rgba(0, 0, 0, 0.4)"
+                      zIndex="2000"
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Box
+                        bg="white"
+                        p={6}
+                        borderRadius="md"
+                        maxW="400px"
+                        w="90%"
+                        boxShadow="lg"
+                      >
+                        <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                          Share this listing
+                        </Text>
+
+                        <VStack spacing={3}>
+                          <Input value={shareUrl} isReadOnly bg="gray.100" />
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              onCopy();
+                              toast({
+                                title: "Link copied!",
+                                description: "The listing link has been copied to your clipboard.",
+                                status: "success",
+                                duration: 3000,
+                                isClosable: true,
+                              });
+                            }}
+                            colorScheme="blue"
+                            w="100%"
+                          >
+                            Copy Link
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowSharePopup(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </VStack>
+                      </Box>
+                    </Box>
+                  )}
+
                    <Button
                       bgColor="rgba(221, 147, 51, 0.47)"
                       borderRadius={20}
