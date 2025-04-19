@@ -2,6 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 // import american from '../images/american.jpg';
 // import linear from '../images/linear.jpg';
 import Navbar from '../components/Navbar'
+import { FiFlag } from 'react-icons/fi';
 import { useAuth } from '../contexts/AuthContext'; // Import useAuth
 import { useNavigate } from 'react-router-dom'; // Import useNavigate
 import {
@@ -9,7 +10,9 @@ import {
   Container,
   Flex,
   Text,
+  Textarea,
   Image,
+  VStack,
   Input,
   Icon,
   Avatar,
@@ -50,7 +53,8 @@ import { updateUserProfile } from "../services/api";
 const BookCard = ({ book, onToggleFavorite, postedNotifications,
   handleSellingTo, handleFinalizeSell, selectedUserId, setSelectedUserId  }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
-  
+  const [showReportOverlay, setShowReportOverlay] = useState(false);
+
 
   // const userRequestedNames = useMemo(() => {
   //   return book.usersRequested.map((id) => ({
@@ -409,7 +413,64 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                       px={5}
                       fontSize="sm"
                       fontWeight="semibold"
-                    >...</Button>
+                      onClick={() => setShowReportOverlay(true)}
+                    >
+                      <Icon as={FiFlag} />
+                    </Button>
+
+                    {showReportOverlay && (
+                      <Box
+                        position="fixed"
+                        top="0"
+                        left="0"
+                        w="100vw"
+                        h="100vh"
+                        bg="rgba(0, 0, 0, 0.4)"
+                        zIndex="2000"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Box
+                          bg="white"
+                          p={8}
+                          borderRadius="md"
+                          maxW="500px"
+                          w="90%"
+                          boxShadow="lg"
+                        >
+                          <Text fontSize="lg" mb={4}>
+                            Why are you reporting this listing?
+                          </Text>
+                          <VStack spacing={3}>
+                            <Select placeholder="Select reason" bgColor="#D9D9D9">
+                              <option value="spam" >Spam</option>
+                              <option value="inappropriate">Inappropriate content</option>
+                              <option value="misleading">Misleading information</option>
+                            </Select>
+                            <Textarea placeholder="Please Explain" bgColor="#D9D9D9" />
+                            <Button
+                              bgColor="#DD8533"
+                              color="white"
+                              w="100%"
+                              borderRadius="full"
+                              onClick={() => setShowReportOverlay(false)}
+                            >
+                              Report Listing
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowReportOverlay(false)}
+                            >
+                              Cancel
+                            </Button>
+                          </VStack>
+                        </Box>
+                      </Box>
+                    )}
+
+
                   </Flex>
                 </Box>
                     
