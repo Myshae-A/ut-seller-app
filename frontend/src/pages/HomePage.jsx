@@ -12,14 +12,22 @@ import {
   Button,
   Modal, 
   Divider,
+  Menu,
+  MenuList,
+  MenuButton,
+  MenuItem, 
+  MenuItemOption,
+  MenuOptionGroup,
   ModalOverlay, 
   ModalContent, 
   ModalHeader, 
   ModalBody, 
   ModalCloseButton,
+  Select,
   useDisclosure,
   useToast
 } from '@chakra-ui/react';
+import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
 import { HiHeart } from "react-icons/hi";
@@ -33,7 +41,7 @@ import {
 import { useEffect } from 'react';
 import Banner from '../components/Banner';
 import { useAuth } from "../contexts/AuthContext";
-import InfiniteScroll from 'react-infinite-scroll-component';
+//import InfiniteScroll from 'react-infinite-scroll-component';
 import Navbar from '../components/Navbar';
 
 
@@ -393,7 +401,8 @@ const HomePage = () => {
   const [gotOriginalBooks, setGotOriginalBooks] = useState(false); // Track if original books are fetched
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   
-  
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+
   // filter states:
   const [selectedSubjects, setSelectedSubjects] = useState([]);
   const [selectedConditions, setSelectedConditions] = useState([]);
@@ -559,7 +568,7 @@ const HomePage = () => {
   };
 
   return (
-    <>
+    <Box bg="white" minHeight="100vh">
     
     <Navbar
       searchQuery={searchQuery}
@@ -567,17 +576,53 @@ const HomePage = () => {
       handleSearchKeyDown={handleSearchKeyDown}
     />
     <Banner />
+    <Flex direction="column" p={4}>
+      {/* Filter and Sort Buttons */}
+      <Flex gap={3} mb={4} alignItems="right" justifyContent="right">
+        <Button
+        //ADD ICON
+          rightIcon={<Icon/>}
+          onClick={() => setIsSidebarOpen(true)}
+          bg="gray.200"
+        >
+          Filters
+        </Button>
+
+        <Menu>
+          <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="gray.200">
+            Sort
+          </MenuButton>
+          <MenuList>
+            <MenuOptionGroup defaultValue="low" title="Sort by" type="radio">
+              <MenuItemOption value="low">Price: low to high</MenuItemOption>
+              <MenuItemOption value="high">Price: high to low</MenuItemOption>
+              <MenuItemOption value="recent">Recently Listed</MenuItemOption>
+            </MenuOptionGroup>
+          </MenuList>
+        </Menu>
+      </Flex>
+
+      {/* The rest of your homepage */}
+    </Flex>
     <Flex>
-      <SideSearchTab
-        selectedSubjects={selectedSubjects}
-        setSelectedSubjects={setSelectedSubjects}
-        selectedConditions={selectedConditions}
-        setSelectedConditions={setSelectedConditions}
-        selectedDepartment={selectedDepartment}
-        setSelectedDepartment={setSelectedDepartment}
-        selectedCatalogNumber={selectedCatalogNumber}
-        setSelectedCatalogNumber={setSelectedCatalogNumber}
-        onApplyFilters={handleApplyFilters} />
+    <SideSearchTab
+      isOpen={isSidebarOpen}
+      onClose={() => setIsSidebarOpen(false)}
+      onOpen={() => setIsSidebarOpen(true)}
+      selectedSubjects={selectedSubjects}
+      setSelectedSubjects={setSelectedSubjects}
+      selectedConditions={selectedConditions}
+      setSelectedConditions={setSelectedConditions}
+      selectedDepartment={selectedDepartment}
+      setSelectedDepartment={setSelectedDepartment}
+      selectedCatalogNumber={selectedCatalogNumber}
+      setSelectedCatalogNumber={setSelectedCatalogNumber}
+      onApplyFilters={(filters) => {
+        handleApplyFilters(filters);
+        setIsSidebarOpen(false); // also close it after applying filters
+      }}
+    />
+
       <Box p={4} bg="gray.50" minHeight="100vh">
         <Grid 
           templateColumns={{
@@ -612,7 +657,7 @@ const HomePage = () => {
         </Grid>
       </Box>
     </Flex>
-    </>
+    </Box>
   );
 };
 

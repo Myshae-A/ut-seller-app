@@ -22,6 +22,9 @@ import {
 import { ChevronRightIcon } from '@chakra-ui/icons';
 
 const SideSearchTab = ({
+  isOpen,
+  onClose,
+  onOpen,
   selectedSubjects,
   setSelectedSubjects,
   selectedConditions,
@@ -32,9 +35,7 @@ const SideSearchTab = ({
   setSelectedCatalogNumber,
   onApplyFilters,
 }) => {
-  const [isOpen, setIsOpen] = useState(false);
 
-  const toggleDrawer = () => setIsOpen(!isOpen);
 
   const toggleSubject = (subject) => {
     setSelectedSubjects(prev => 
@@ -63,7 +64,7 @@ const SideSearchTab = ({
     });
 
     // Close the drawer
-    toggleDrawer();
+    onClose();
   };
 
 
@@ -128,7 +129,7 @@ const conditions = [
           color="white"
           borderLeftRadius="none"
           borderRightRadius="50"
-          onClick={toggleDrawer}
+          onClick={onOpen}
           aria-label="Open Filters"
           size="md"
           px={8}
@@ -139,7 +140,7 @@ const conditions = [
       <Drawer 
         isOpen={isOpen} 
         placement="left"
-        onClose={toggleDrawer}
+        onClose={onClose}
         
       >
         <DrawerOverlay />

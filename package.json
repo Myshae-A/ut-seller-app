@@ -13,6 +13,7 @@
   "license": "ISC",
   "description": "",
   "dependencies": {
+    "@chakra-ui/icons": "^2.2.4",
     "body-parser": "^1.20.3",
     "cors": "^2.8.5",
     "cross-env": "^7.0.3",
