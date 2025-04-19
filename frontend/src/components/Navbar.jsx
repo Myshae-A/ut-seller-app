@@ -1,9 +1,11 @@
-import { Tooltip, Button, Flex, Icon, IconButton, InputGroup, InputLeftElement, Input, Image, Box, Heading } from '@chakra-ui/react';
-import { useNavigate } from 'react-router-dom';
-import { FiUser } from 'react-icons/fi';
+import { Tooltip, Button, Flex, Icon, IconButton, InputGroup, InputLeftElement, Input, Image, Box, Heading, Menu,
+  MenuButton,
+  MenuList,
+  MenuItem, } from '@chakra-ui/react';
+import { Navigate, useNavigate } from 'react-router-dom';
 import { AddIcon, UnlockIcon } from '@chakra-ui/icons';
 import logo from "../images/miso_logo.png";
-import { FiSearch } from 'react-icons/fi';
+import { FiSearch, FiUser, FiLogOut, FiUserCheck } from 'react-icons/fi';
 import React from 'react';
 import { useAuth } from '../contexts/AuthContext';
 import SearchBar from './SearchBar';
@@ -80,7 +82,7 @@ return (
         </Flex>
 
 
-        <Flex w="10%" justify="flex-end" align="center" pr={6}>
+        <Flex w="10%" ml="auto" justify-items="right" pr={0}>
 
 
         {/* create item button */}
@@ -99,40 +101,41 @@ return (
 
         {/* account button */}
         <Tooltip label="Open account page" aria-label="Logout tooltip">
-          <Button
-            top="6%"
-            right="0"
-            px={4}
-            borderLeftRadius="50"
-            borderRightRadius="none"
-            aria-label="User profile"
-            mr={2}
-            size="md"
-            zIndex="1000"
+          {/* <IconButton
+            aria-label="Open Account"
             bgColor="#DD8533"
             color="white"
             borderRadius="full"
-            onClick={handleAccountNavigation}
-          >
-            <Icon as={FiUser} boxSize={6} color="white" />
-          </Button>
-        </Tooltip>
-
-        {/* Logout Button */}
-        <Tooltip label="Log out" aria-label="Logout tooltip">
-          <Button
-            bgColor="#DD8533"
-            color="white"
-            fontWeight={"light"}
-            borderRadius={25}
-            px={4}
             size="md"
-            onClick={handleLogout}
-            fontSize={20}
-            _hover={{ bgColor: "rgba(221, 147, 51, 0.4)" }}
-          >
-            <Icon as={UnlockIcon} boxSize={6} color="white"/>
-          </Button>
+            mr="2"
+            onClick={handleAccountNavigation}
+            icon={<FiUser />}
+          /> */}
+            <Menu>
+            `<MenuButton
+              as={Button}
+              bgColor="#DD8533"
+              color="white"
+              borderRadius="full"
+              size="md"
+              minW="40px"
+              h="40px"
+              p={0}
+              _hover={{ bgColor: "#d0762c" }}
+              _expanded={{ bgColor: "#c56924" }}
+              aria-label="Account menu"
+            >
+              <Icon as={FiUser} boxSize={5} />
+            </MenuButton>`
+
+            <MenuList
+              minW="fit-content">
+              <MenuItem icon={<FiUserCheck />} onClick={() => navigate('/account')}>
+                Your Profile</MenuItem>
+              <MenuItem icon={<FiLogOut />} onClick={() => handleLogout()}>
+                Log out</MenuItem>
+            </MenuList>
+          </Menu>
         </Tooltip>
         
       </Flex>

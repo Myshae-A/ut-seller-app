@@ -121,7 +121,7 @@ const conditions = [
         <IconButton 
           icon={<ChevronRightIcon />}
           position="fixed"
-          top="5%"
+          top="7%"
           left="0"
           transform="translateY(-70%)"
           zIndex="1000"
