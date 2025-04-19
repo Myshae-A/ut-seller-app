@@ -19,7 +19,7 @@ import {
   Wrap,
   WrapItem
 } from '@chakra-ui/react';
-import { ChevronRightIcon } from '@chakra-ui/icons';
+import { FiFilter } from 'react-icons/fi';
 
 const SideSearchTab = ({
   isOpen,
@@ -69,28 +69,41 @@ const SideSearchTab = ({
 
 
   {/* Subjects for now */}
+    const subjects = [
+      'math',
+      'english',
+      'science',
+      'visual and performing arts',
+      'first-year signature course',
+      'government',
+      'history'
+    ];
   // const subjects = [
-  //   'math',
-  //   'english',
-  //   'science',
-  //   'visual and performing arts',
-  //   'first-year signature course',
-  //   'government',
-  //   'history'
+  //   'Fiction',
+  //   'Non-Fiction',
+  //   'Reference',
   // ];
-  const subjects = [
-    'Fiction',
-    'Non-Fiction',
-    'Reference',
-  ];
 
   {/* Departments for now */}
 
   const department = [
-    'Arts',
-    'Science',
-    'History',
+    'McCombs School of Business',
+    'School of Civic Leadership',
+    'Moody College of Communication',
+    'College of Education',
+    'Cockrell School of Engineering',
+    'College of Fine Arts',
+    'Jackson School of Geosciences',
+    'School of Information',
+    'College of Liberal Arts',
+    'College of Natural Sciences',
+    'School of Nursing',
+    'College of Pharmacy',
+    'Lyndon B. Johnson School of Public Affairs',
+    'Steve Hicks School of Social Work',
+    'Pre-Med, Pre-Law & Teaching',
   ];
+  
 
   const catalogNumber = [
     'ISBN',
@@ -99,19 +112,19 @@ const SideSearchTab = ({
   ]
 
   {/* Conditions for now */}
-  // const conditions = [
-  //   'brand new',
-  //   'like new',
-  //   'gently used',
-  //   'fairly used',
-  //   'heavily used'
-  // ];
-const conditions = [
-  'New',
-  "Like New",
-  "Good",
-  "Fair"
-]
+  const conditions = [
+    'brand new',
+    'like new',
+    'gently used',
+    'fairly used',
+    'heavily used'
+  ];
+// const conditions = [
+//   'New',
+//   "Like New",
+//   "Good",
+//   "Fair"
+// ]
 
 
   return (
@@ -119,7 +132,7 @@ const conditions = [
       {/* Floating Filter Button */}
       <Tooltip label="Use search filters" aria-label="Logout tooltip">
         <IconButton 
-          icon={<ChevronRightIcon />}
+          icon={<FiFilter />}
           position="fixed"
           top="7%"
           left="0"
@@ -184,6 +197,7 @@ const conditions = [
                 <Text fontSize="lg">Deparment</Text>
                 <Select 
                     value={selectedDepartment}
+                    backgroundColor={'rgb(195, 195, 195)'}
                     onChange={(e) => setSelectedDepartment(e.target.value)}
                 >
                     <option value="">Select a Department</option> {/* Placeholder option */}
@@ -199,6 +213,7 @@ const conditions = [
             <VStack align="stretch" mb={4}>
               <Text fontSize="lg">Catalog Number</Text>
               <Select
+                backgroundColor={'rgb(195, 195, 195)'}
                 value={selectedCatalogNumber}
                 onChange={(e) => setSelectedCatalogNumber(e.target.value)}
               >

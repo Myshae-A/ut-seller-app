@@ -355,9 +355,13 @@ const CreatePage = () => {
                   variant="filled" 
                   size="md"
                 >
-                  <option value="Fiction">Fiction</option>
-                  <option value="Non-Fiction">Non-Fiction</option>
-                  <option value="Reference">Reference</option>
+                  <option value="Math">math</option>
+                  <option value="English">english</option>
+                  <option value="Science">science</option>
+                  <option value="Visual and Performing Arts">visual and performing arts</option>
+                  <option value="First-Year Signature Course">first-year signature course</option>
+                  <option value="Government">government</option>
+                  <option value="History">history</option>
                 </Select>
                 
                 <Select 
@@ -371,9 +375,22 @@ const CreatePage = () => {
                   variant="filled" 
                   size="md"
                 >
-                  <option value="Arts">Arts</option>
-                  <option value="Science">Science</option>
-                  <option value="History">History</option>
+                  <option value="McCombs School of Business">McCombs School of Business</option>
+                  <option value="School of Civic Leadership">School of Civic Leadership</option>
+                  <option value="Moody College of Communication">Moody College of Communication</option>
+                  <option value="College of Education">College of Education</option>
+                  <option value="Cockrell School of Engineering">Cockrell School of Engineering</option>
+                  <option value="College of Fine Arts">College of Fine Arts</option>
+                  <option value="Jackson School of Geosciences">Jackson School of Geosciences</option>
+                  <option value="School of Information">School of Information</option>
+                  <option value="College of Liberal Arts">College of Liberal Arts</option>
+                  <option value="College of Natural Sciences">College of Natural Sciences</option>
+                  <option value="School of Nursing">School of Nursing</option>
+                  <option value="College of Pharmacy">College of Pharmacy</option>
+                  <option value="Lyndon B. Johnson School of Public Affairs">Lyndon B. Johnson School of Public Affairs</option>
+                  <option value="Steve Hicks School of Social Work">Steve Hicks School of Social Work</option>
+                  <option value="Pre-Med, Pre-Law & Teaching">Pre-Med, Pre-Law & Teaching</option>
+
                 </Select>
               </Flex>
               
@@ -389,10 +406,12 @@ const CreatePage = () => {
                   variant="filled" 
                   size="md"
                 >
-                  <option value="New">New</option>
-                  <option value="Like New">Like New</option>
-                  <option value="Good">Good</option>
-                  <option value="Fair">Fair</option>
+                  <option value="Brand New">brand new</option>
+                  <option value="Like New">like new</option>
+                  <option value="Gently Used">gently used</option>
+                  <option value="Fairly Used">fairly used</option>
+                  <option value="Heavily Used">heavily used</option>
+
                 </Select>
                 
                 <Select 

@@ -27,6 +27,7 @@ import {
   useDisclosure,
   useToast
 } from '@chakra-ui/react';
+import { FiFilter } from 'react-icons/fi';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -581,15 +582,15 @@ const HomePage = () => {
       <Flex gap={3} mb={4} alignItems="right" justifyContent="right">
         <Button
         //ADD ICON
-          rightIcon={<Icon/>}
+          rightIcon={<FiFilter/>}
           onClick={() => setIsSidebarOpen(true)}
-          bg="gray.200"
+          backgroundColor={'rgb(195, 195, 195)'}
         >
           Filters
         </Button>
 
         <Menu>
-          <MenuButton as={Button} rightIcon={<ChevronDownIcon />} bg="gray.200">
+          <MenuButton as={Button} rightIcon={<ChevronDownIcon />} backgroundColor={'rgb(195, 195, 195)'}>
             Sort
           </MenuButton>
           <MenuList>
