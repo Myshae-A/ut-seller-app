@@ -56,6 +56,25 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [showReportOverlay, setShowReportOverlay] = useState(false);
 
+  const tags = [
+    ...(book.subject ? [book.subject] : []),
+    ...(book.condition ? [book.condition] : []),
+  ];
+  
+  const maxTotalLength = 23; // Adjust this number to fit your layout
+  let totalLength = 0;
+  const visibleTags = [];
+  const hiddenTags = [];
+
+  tags.forEach((tag) => {
+    if (totalLength + tag.length <= maxTotalLength) {
+      visibleTags.push(tag);
+      totalLength += tag.length;
+    } else {
+      hiddenTags.push(tag);
+    }
+  });
+
   const [showSharePopup, setShowSharePopup] = useState(false);
   const shareUrl = `https://yourapp.com/listings/${book.id}`; // replace with actual URL
   const { hasCopied, onCopy } = useClipboard(shareUrl);
@@ -210,9 +229,9 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
           </Text>
           
           <Flex gap={2} mb={2} flexWrap="wrap">
-            {book.categories && book.categories.map((cat, idx) => (
-              <Badge 
-                key={idx} 
+            {visibleTags.map((tag, idx) => (
+              <Badge
+                key={idx}
                 bgColor="rgba(221, 147, 51, 0.47)"
                 borderRadius={30}
                 p={1}
@@ -220,26 +239,24 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                 fontSize="x-small"
                 fontWeight="semibold"
               >
-                {cat}
+                {tag}
               </Badge>
             ))}
-            
-            {book.condition && (
-              <Badge 
-                bgColor="rgba(221, 147, 51, 0.47)"
+            {hiddenTags.length > 0 && (
+              <Badge
+                bgColor="gray.300"
                 borderRadius={30}
                 p={1}
                 px={2}
                 fontSize="x-small"
                 fontWeight="semibold"
               >
-                {book.condition}
+                +{hiddenTags.length}
               </Badge>
             )}
           </Flex>
           
           <Text 
-            fontWeight="bold" 
             fontSize="sm" 
             color="gray.700"
           >

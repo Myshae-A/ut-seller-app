@@ -53,6 +53,24 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
   const toast = useToast();
   // const { updateBooksRequested } = useAuth(); // Assuming you have a context or state management for this
 
+  const tags = [
+    ...(book.subject ? [book.subject] : []),
+    ...(book.condition ? [book.condition] : []),
+  ];
+  
+  const maxTotalLength = 23; // Adjust this number to fit your layout
+  let totalLength = 0;
+  const visibleTags = [];
+  const hiddenTags = [];
+
+  tags.forEach((tag) => {
+    if (totalLength + tag.length <= maxTotalLength) {
+      visibleTags.push(tag);
+      totalLength += tag.length;
+    } else {
+      hiddenTags.push(tag);
+    }
+  });
   const handleNextImage = () => {
     setImgIndex((prevIndex) => (prevIndex + 1) % book.image.length);
   };
@@ -127,6 +145,7 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
         isClosable: true,
       });
     }
+    
   };
   
   return (
@@ -194,33 +213,32 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
           </Text>
           
           <Flex gap={2} mb={2} flexWrap="wrap">
-            {book.categories && book.categories.map((cat, idx) => (
-              <Badge 
-                key={idx} 
-                bgColor="rgba(221, 147, 51, 0.47)"
-                borderRadius={30}
-                p={1}
-                px={2}
-                fontSize="x-small"
-                fontWeight="semibold"
-              >
-                {cat}
-              </Badge>
-            ))}
-            
-            {book.condition && (
-              <Badge 
-                bgColor="rgba(221, 147, 51, 0.47)"
-                borderRadius={30}
-                p={1}
-                px={2}
-                fontSize="x-small"
-                fontWeight="semibold"
-              >
-                {book.condition}
-              </Badge>
-            )}
-          </Flex>
+                      {visibleTags.map((tag, idx) => (
+                        <Badge
+                          key={idx}
+                          bgColor="rgba(221, 147, 51, 0.47)"
+                          borderRadius={30}
+                          p={1}
+                          px={2}
+                          fontSize="x-small"
+                          fontWeight="semibold"
+                        >
+                          {tag}
+                        </Badge>
+                      ))}
+                      {hiddenTags.length > 0 && (
+                        <Badge
+                          bgColor="gray.300"
+                          borderRadius={30}
+                          p={1}
+                          px={2}
+                          fontSize="x-small"
+                          fontWeight="semibold"
+                        >
+                          +{hiddenTags.length}
+                        </Badge>
+                      )}
+                    </Flex>
           
           <Text 
             fontSize="sm" 
@@ -581,7 +599,7 @@ const HomePage = () => {
       {/* Filter and Sort Buttons */}
       <Flex gap={3} mb={4} alignItems="right" justifyContent="right">
         <Button
-        //ADD ICON
+        
           rightIcon={<FiFilter/>}
           onClick={() => setIsSidebarOpen(true)}
           backgroundColor={'rgb(195, 195, 195)'}
@@ -603,7 +621,7 @@ const HomePage = () => {
         </Menu>
       </Flex>
 
-      {/* The rest of your homepage */}
+      
     </Flex>
     <Flex>
     <SideSearchTab
@@ -625,6 +643,7 @@ const HomePage = () => {
     />
 
       <Box p={4} bg="gray.50" minHeight="100vh">
+      <Box w={{ base: "100%", md: "80%" }} mx="auto">
         <Grid 
           templateColumns={{
             base: 'repeat(2, 1fr)', 
@@ -656,6 +675,7 @@ const HomePage = () => {
           )}
 
         </Grid>
+        </Box>
       </Box>
     </Flex>
     </Box>
