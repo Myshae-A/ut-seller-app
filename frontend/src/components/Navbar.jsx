@@ -112,7 +112,7 @@ return (
             icon={<FiUser />}
           /> */}
             <Menu>
-            `<MenuButton
+            <MenuButton
               as={Button}
               bgColor="#DD8533"
               color="white"
@@ -126,7 +126,7 @@ return (
               aria-label="Account menu"
             >
               <Icon as={FiUser} boxSize={5} />
-            </MenuButton>`
+            </MenuButton>
 
             <MenuList
               minW="fit-content">

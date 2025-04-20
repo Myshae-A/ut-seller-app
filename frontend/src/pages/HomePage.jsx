@@ -25,9 +25,12 @@ import {
   ModalCloseButton,
   Select,
   useDisclosure,
-  useToast
+  useClipboard,
+  useToast,
+  Input,
+  Textarea
 } from '@chakra-ui/react';
-import { FiFilter } from 'react-icons/fi';
+import { FiFilter, FiFlag } from 'react-icons/fi';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -44,13 +47,14 @@ import Banner from '../components/Banner';
 import { useAuth } from "../contexts/AuthContext";
 //import InfiniteScroll from 'react-infinite-scroll-component';
 import Navbar from '../components/Navbar';
+import React from 'react';
 
 
 
 const BookCard = ({ book, onToggleFavorite, currentUser }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [imgIndex, setImgIndex] = useState(0);
-  const toast = useToast();
+  //const toast = useToast();
   // const { updateBooksRequested } = useAuth(); // Assuming you have a context or state management for this
 
   const tags = [
@@ -71,6 +75,14 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
       hiddenTags.push(tag);
     }
   });
+
+  const [showSharePopup, setShowSharePopup] = useState(false);
+  const shareUrl = `https://yourapp.com/listings/${book.id}`; // replace with actual URL
+  const { hasCopied, onCopy } = useClipboard(shareUrl);
+  const toast = useToast();
+  //const { isOpen, onOpen, onClose } = useDisclosure();
+  const [showReportOverlay, setShowReportOverlay] = useState(false);
+  
   const handleNextImage = () => {
     setImgIndex((prevIndex) => (prevIndex + 1) % book.image.length);
   };
@@ -242,8 +254,7 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
           
           <Text 
             fontSize="sm" 
-            fontWeight="light"
-            color="gray.500"
+            color="black"
           >
             ${book.price}
           </Text>
@@ -360,29 +371,101 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
                       borderRadius={20}
                       p={5}
                     ></IconButton>
-                    <IconButton
-                      icon={
-                        <svg
-                          xmlns="http://www.w3.org/2000/svg"
-                          width="15"
-                          viewBox="0 0 24 24"
-                          fill="none"
-                          stroke="currentColor"
-                          strokeWidth="2"
-                          strokeLinecap="round"
-                          strokeLinejoin="round"
+                    <Button
+                          bgColor="rgba(221, 147, 51, 0.47)"
+                          borderRadius={20}
+                          p={1}
+                          px={5}
+                          fontSize="sm"
+                          fontWeight="semibold"
+                          onClick={() => {
+                            onCopy();
+                            toast({
+                              title: "Link copied!",
+                              description: "The listing link has been copied to your clipboard.",
+                              status: "success",
+                              duration: 3000,
+                              isClosable: true,
+                            });
+                          }}
                         >
-                          <circle cx="18" cy="5" r="3" />
-                          <circle cx="6" cy="12" r="3" />
-                          <circle cx="18" cy="19" r="3" />
-                          <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
-                          <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
-                        </svg>
-                      }
-                      bgColor="rgba(221, 147, 51, 0.47)"
-                      borderRadius={20}
-                      p={5}
-                    />
+                          <Icon
+                            as={() => (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="18" cy="5" r="3" />
+                                <circle cx="6" cy="12" r="3" />
+                                <circle cx="18" cy="19" r="3" />
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                              </svg>
+                            )}
+                          />
+                        </Button>
+                  {showSharePopup && (
+                    <Box
+                      position="fixed"
+                      top="0"
+                      left="0"
+                      w="100vw"
+                      h="100vh"
+                      bg="rgba(0, 0, 0, 0.4)"
+                      zIndex="2000"
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Box
+                        bg="white"
+                        p={6}
+                        borderRadius="md"
+                        maxW="400px"
+                        w="90%"
+                        boxShadow="lg"
+                      >
+                        <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                          Share this listing
+                        </Text>
+
+                        <VStack spacing={3}>
+                          <Input value={shareUrl} isReadOnly bg="gray.100" />
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              onCopy();
+                              toast({
+                                title: "Link copied!",
+                                description: "The listing link has been copied to your clipboard.",
+                                status: "success",
+                                duration: 3000,
+                                isClosable: true,
+                              });
+                            }}
+                            colorScheme="blue"
+                            w="100%"
+                          >
+                            Copy Link
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowSharePopup(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </VStack>
+                      </Box>
+                    </Box>
+                  )}
+
                    <Button
                       bgColor="rgba(221, 147, 51, 0.47)"
                       borderRadius={20}
@@ -390,7 +473,63 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
                       px={5}
                       fontSize="sm"
                       fontWeight="semibold"
-                    >...</Button>
+                      onClick={() => setShowReportOverlay(true)}
+                    >
+                      <Icon as={FiFlag} />
+                    </Button>
+
+                    {showReportOverlay && (
+                      <Box
+                        position="fixed"
+                        top="0"
+                        left="0"
+                        w="100vw"
+                        h="100vh"
+                        bg="rgba(0, 0, 0, 0.4)"
+                        zIndex="2000"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Box
+                          bg="white"
+                          p={8}
+                          borderRadius="md"
+                          maxW="500px"
+                          w="90%"
+                          boxShadow="lg"
+                        >
+                          <Text fontSize="lg" mb={4}>
+                            Why are you reporting this listing?
+                          </Text>
+                          <VStack spacing={3}>
+                            <Select placeholder="Select reason" bgColor="#D9D9D9">
+                              <option value="spam" >Spam</option>
+                              <option value="inappropriate">Inappropriate content</option>
+                              <option value="misleading">Misleading information</option>
+                            </Select>
+                            <Textarea placeholder="Please Explain" bgColor="#D9D9D9" />
+                            <Button
+                              bgColor="#DD8533"
+                              color="white"
+                              w="100%"
+                              borderRadius="full"
+                              onClick={() => setShowReportOverlay(false)}
+                            >
+                              Report Listing
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowReportOverlay(false)}
+                            >
+                              Cancel
+                            </Button>
+                          </VStack>
+                        </Box>
+                      </Box>
+                    )}
+
                   </Flex>
                 </Box>
                     
@@ -642,8 +781,8 @@ const HomePage = () => {
       }}
     />
 
-      <Box p={4} bg="gray.50" minHeight="100vh">
-      <Box w={{ base: "100%", md: "80%" }} mx="auto">
+      <Box p={4} bg="white" minHeight="100vh">
+      <Box w={{ base: "100%", md: "95%" }} mx="auto">
         <Grid 
           templateColumns={{
             base: 'repeat(2, 1fr)', 

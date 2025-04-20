@@ -78,6 +78,16 @@ const SideSearchTab = ({
       'government',
       'history'
     ];
+
+    const subjectColors = {
+      math: '#F33A3A40',
+      english: '#E8C81740',
+      science: '#7EC74340',
+      'visual and performing arts': '#DD933340',
+      'first-year signature course': '#D553AC40',
+      government: '#9434E340',
+      history: '#50B8F040',
+    };
   // const subjects = [
   //   'Fiction',
   //   'Non-Fiction',
@@ -181,7 +191,10 @@ const SideSearchTab = ({
                     <Button
                       size="sm"
                       borderRadius={30}
-                      bg={selectedSubjects.includes(subject) ? "rgba(221, 147, 51, 0.4)" : 'rgb(195, 195, 195)'}
+                      bg={selectedSubjects.includes(subject)
+                        ? subjectColors[subject] || 'gray.300'
+                        : 'rgb(195, 195, 195)'
+                    }
                       onClick={() => toggleSubject(subject)}
                       textTransform="capitalize"
                     >

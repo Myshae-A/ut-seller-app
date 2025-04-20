@@ -56,6 +56,16 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [showReportOverlay, setShowReportOverlay] = useState(false);
 
+  const subjectColors = {
+    math: '#F33A3A40',
+    english: '#E8C81740',
+    science: '#7EC74340',
+    'visual and performing arts': '#DD933340',
+    'first-year signature course': '#D553AC40',
+    government: '#9434E340',
+    history: '#50B8F040',
+  };
+
   const tags = [
     ...(book.subject ? [book.subject] : []),
     ...(book.condition ? [book.condition] : []),
@@ -232,7 +242,7 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
             {visibleTags.map((tag, idx) => (
               <Badge
                 key={idx}
-                bgColor="rgba(221, 147, 51, 0.47)"
+                bgColor={subjectColors[tag.toLowerCase()] || "rgba(221, 147, 51, 0.47)"}
                 borderRadius={30}
                 p={1}
                 px={2}
@@ -258,7 +268,7 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
           
           <Text 
             fontSize="sm" 
-            color="gray.700"
+            color="black"
           >
             ${book.price}
           </Text>
@@ -314,19 +324,18 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
-                    {book.categories && book.categories.map((cat, idx) => (
-                      <Badge 
-                        key={idx} 
-                        bgColor="rgba(221, 147, 51, 0.47)"
-                        borderRadius={30}
+                    {book.subject && (
+                      <Badge  
+                      bgColor={subjectColors[book.subject.toLowerCase()] || 'gray.300'}
+                      borderRadius={30}
                         p={1}
                         px={2}
                         fontSize="x-small"
                         fontWeight="semibold"
                       >
-                        {cat}
+                        {book.subject}
                       </Badge>
-                    ))}
+                    )}
                     {book.condition && (
                       <Badge 
                         bgColor="rgba(221, 147, 51, 0.47)"
