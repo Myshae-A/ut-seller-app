@@ -576,6 +576,8 @@ const HomePage = () => {
   const [selectedDepartment, setSelectedDepartment] = useState(""); // Track selected department
   const [selectedCatalogNumber, setSelectedCatalogNumber] = useState(""); // Track selected catalog number
   
+  const [sortOption, setSortOption] = useState('recent');
+  const [sortedBooks, setSortedBooks] = useState([]);
 
   // Fetch products for the current page
   const fetchMoreProducts = async () => {
@@ -617,6 +619,17 @@ const HomePage = () => {
       console.log("filteredBooks initialized:", books);
     }
   }, [gotOriginalBooks]);
+
+  useEffect(() => {
+    const sorted = [...filteredBooks].sort((a, b) => {
+      if (sortOption === 'low') return a.price - b.price;
+      if (sortOption === 'high') return b.price - a.price;
+      if (sortOption === 'recent') return new Date(b.dateListed) - new Date(a.dateListed);
+      return 0;
+    });
+    setSortedBooks(sorted);
+  }, [filteredBooks, sortOption]);
+  
 
   // Handle search input WORKS NOW!!!!
   const handleSearchInput = (e) => {
@@ -760,7 +773,7 @@ const HomePage = () => {
             Sort
           </MenuButton>
           <MenuList>
-            <MenuOptionGroup defaultValue="low" title="Sort by" type="radio">
+            <MenuOptionGroup defaultValue="recent" title="Sort by" type="radio" onChange={(value) => setSortOption(value)}>
               <MenuItemOption value="low">Price: low to high</MenuItemOption>
               <MenuItemOption value="high">Price: high to low</MenuItemOption>
               <MenuItemOption value="recent">Recently Listed</MenuItemOption>
@@ -801,7 +814,7 @@ const HomePage = () => {
           }}
           gap={4}
         >
-          {books.length > 0 ? books.map(book => (
+          {sortedBooks.length > 0 ? sortedBooks.map(book => (
             <BookCard 
               key={book.id} 
               book={book} 
