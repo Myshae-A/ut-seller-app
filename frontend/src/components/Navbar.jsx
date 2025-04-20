@@ -82,7 +82,7 @@ return (
         </Flex>
 
 
-        <Flex w="10%" ml="auto" justify-items="right" pr={0}>
+        <Flex ml="auto" gap={2}>
 
 
         {/* create item button */}
@@ -101,16 +101,6 @@ return (
 
         {/* account button */}
         <Tooltip label="Open account page" aria-label="Logout tooltip">
-          {/* <IconButton
-            aria-label="Open Account"
-            bgColor="#DD8533"
-            color="white"
-            borderRadius="full"
-            size="md"
-            mr="2"
-            onClick={handleAccountNavigation}
-            icon={<FiUser />}
-          /> */}
             <Menu>
             <MenuButton
               as={Button}

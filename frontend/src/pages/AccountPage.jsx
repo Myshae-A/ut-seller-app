@@ -71,7 +71,7 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
     ...(book.condition ? [book.condition] : []),
   ];
   
-  const maxTotalLength = 23; // Adjust this number to fit your layout
+  const maxTotalLength = 15; // Adjust this number to fit your layout
   let totalLength = 0;
   const visibleTags = [];
   const hiddenTags = [];
@@ -103,9 +103,9 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
         overflow="hidden"
         display="flex" 
         p={4}
-        justifyContent="center"
+        //justifyContent="center"
         flexDirection="column"
-        alignItems="center"
+        //alignItems="center"
         cursor="pointer"
         onClick={onOpen}
         position="relative"
@@ -228,7 +228,7 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
           </button>
         </Box>
         
-        <Box p={3} position="relative">
+        <Box p={3} position="relative" textAlign="left">
           <Text 
             fontWeight="bold" 
             fontSize="sm" 
@@ -238,7 +238,7 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
             {book.name}
           </Text>
           
-          <Flex gap={2} mb={2} flexWrap="wrap">
+          <Flex gap={2} mb={2} justifyContent="flex-start" alignItems="flex-start" flexWrap="wrap">
             {visibleTags.map((tag, idx) => (
               <Badge
                 key={idx}
@@ -579,7 +579,7 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                     
                 <Text  mb={2}>{book.catalogue}</Text>
                 <Text  mb={2}>{book.description}</Text>
-
+               {/* <Text mb={2}>{book.userPosted}</Text> */}
               </Flex>
             </ModalBody>
             </Box>
