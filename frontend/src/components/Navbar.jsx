@@ -118,7 +118,7 @@ return (
         </Flex>
 
 
-        <Flex w="10%" ml="auto" gap={2} justify-items="right" pr={0}>
+        <Flex ml="auto" gap={2} justify-items="right" pr={0}>
 
         {/* create item button */}
         <Tooltip label="Create a post!" aria-label="Logout tooltip">

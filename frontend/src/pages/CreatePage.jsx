@@ -326,7 +326,7 @@ const CreatePage = () => {
             position="relative"
           >
             <VStack spacing={4} p={4} align="stretch">
-              <FormControl>
+              <FormControl isRequired>
                 <Input 
                   name="name" 
                   value={newProduct.name}
@@ -339,7 +339,7 @@ const CreatePage = () => {
                 />
               </FormControl>
               
-              <FormControl maxWidth="40%">
+              <FormControl isRequired maxWidth="40%">
                 <Input 
                   name="price" 
                   value={newProduct.price}
@@ -406,7 +406,7 @@ const CreatePage = () => {
               </Flex>
               
               <Flex gap={2}>
-                <Select 
+                <Select isRequired
                   name="condition" 
                   value={newProduct.condition}
                   onChange={handleInputChange}

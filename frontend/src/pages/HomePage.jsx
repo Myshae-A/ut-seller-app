@@ -1,4 +1,5 @@
-import { 
+import {
+  Avatar, 
   Box, 
   Flex,
   Text, 
@@ -71,7 +72,7 @@ const BookCard = ({
     ...(book.condition ? [book.condition] : []),
     ...(book.department ? [book.department] : []),
   ];
-  
+  const [profileImage, setProfileImage] = useState("");
   const maxTotalLength = 20; // Adjust this number to fit your layout
   let totalLength = 0;
   const visibleTags = [];
@@ -87,15 +88,15 @@ const BookCard = ({
   });
 
 
-  // const subjectColors = {
-  //     math: '#F33A3A40',
-  //     english: '#E8C81740',
-  //     science: '#7EC74340',
-  //     'visual and performing arts': '#DD933340',
-  //     'first-year signature course': '#D553AC40',
-  //     government: '#9434E340',
-  //     history: '#50B8F040',
-  //   };
+  const subjectColors = {
+      math: '#F33A3A40',
+      english: '#E8C81740',
+      science: '#7EC74340',
+      'visual and performing arts': '#DD933340',
+      'first-year signature course': '#D553AC40',
+      government: '#9434E340',
+      history: '#50B8F040',
+    };
   
     const [showSharePopup, setShowSharePopup] = useState(false);
     const shareUrl = `https://yourapp.com/listings/${book.id}`; // replace with actual URL
@@ -315,18 +316,18 @@ const BookCard = ({
           
           <Flex gap={1} mb={2} flexWrap="wrap">
             {visibleTags.map((tag, idx) => {
-              let bgColor = "gray.300";               // fallback
-              if (tag === book.subject) {
-                bgColor = "rgba(200,226,240,1)";
-              } else if (tag === book.condition) {
-                bgColor = "rgba(221,147,51,0.47)";
-              } else if (tag === book.department) {
-                bgColor = "rgba(231,185,216,1)";
-              }
+              // let bgColor = "gray.300";               // fallback
+              // if (tag === book.subject) {
+              //   bgColor = "rgba(200,226,240,1)";
+              // } else if (tag === book.condition) {
+              //   bgColor = "rgba(221,147,51,0.47)";
+              // } else if (tag === book.department) {
+              //   bgColor = "rgba(231,185,216,1)";
+              // }
               return (
                 <Badge
                   key={idx}
-                  bgColor={bgColor}
+                  bgColor={subjectColors[tag.toLowerCase()] || "rgba(221, 147, 51, 0.47)"}
                   borderRadius="30px"
                   px={2}
                   py={1}
@@ -366,7 +367,7 @@ const BookCard = ({
       initialFocusRef={closeBtnRef}
       isOpen={isOpen}
       onClose={onClose}
-      size="2xl"
+      size="3xl"
       >
         <ModalOverlay />
         <ModalContent 
@@ -378,9 +379,9 @@ const BookCard = ({
         >
           <Flex direction={{ base: 'row' }} p={5} gap={4}>
             <Box 
-              w={{ base: '60%', md: '60%', sm: '50%' }} 
+              w={{ base: '40%', md: '40%', sm: '50%' }} 
               borderRadius="md"
-              pb={4}
+              mb={4}
               position="relative"
               display="flex"
               alignItems="center"
@@ -464,7 +465,7 @@ const BookCard = ({
             <ModalBody>
               <Flex
                 flexDirection="column"
-                //justifyContent="space-between"
+                gap={1}
                 h="100%">
               <Text fontWeight="bold" fontSize="xl" mb={2}>{book.name}</Text>
                 
@@ -743,19 +744,34 @@ const BookCard = ({
                 </Box>
                     
                 <Text  mb={2}>{book.catalogue}</Text>
-                <Text mb={2}>
+                {/* <Text mb={2}>
                   Meetup Date:{' '}
                   {book.meetupDateTime
                     ? new Date(book.meetupDateTime).toLocaleString()
                     : 'TBD'}
-                </Text>
-                <Text mb={2}>
-                  Location: {book.meetupLocation || 'TBD'}
-                </Text>
-                <Text mb={2}>
-                  Contact: {book.contactInfo || 'TBD'}
-                </Text>
-                <Text  mb={2}>Description: {book.description}</Text>
+                </Text> */}
+                <Text  mb={2}>{book.description}</Text>
+                
+                <Flex pt={5} direction="row" gap={2}>
+                  <Flex align="center" height="48px">  
+                    <label htmlFor="profile-image-input" >
+                      <Avatar
+                        size="md"
+                        src={profileImage}
+                        bg="gray.400"
+                        cursor="pointer"
+                      />
+                    </label>
+                  </Flex>
+
+                  <Flex direction="column" justify="center" height="48px">   
+                    <Text fontSize="md" mb={1} pt={3.5} lineHeight="1">{book.contactInfo || 'TBD'}</Text>
+                    <Text color="gray.600" fontSize="xs" mb={0}>{book.meetupLocation || 'TBD'}</Text>
+                    <Text color="gray.600" fontSize="xs" mt={0}>{book.meetupDateTime
+                    ? new Date(book.meetupDateTime).toLocaleString()
+                    : 'TBD'}</Text>
+                  </Flex>   
+                </Flex>
 
               </Flex>
             </ModalBody>
@@ -1183,7 +1199,7 @@ const HomePage = () => {
     />
 
       <Box p={4} bg="white" minHeight="100vh">
-      <Box w={{ base: "100%", md: "75%" }} mx="auto">
+      <Box w={{ base: "100%", md: "95%" }} mx="auto">
         <Grid 
           templateColumns={{
             base: 'repeat(2, 1fr)', 
