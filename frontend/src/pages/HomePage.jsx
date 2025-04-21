@@ -26,9 +26,12 @@ import {
   Select,
   useDisclosure,
   useToast,
-  Tooltip
+  Tooltip,
+  useClipboard,
+  Input,
+  Textarea,
 } from '@chakra-ui/react';
-import { FiFilter } from 'react-icons/fi';
+import { FiFilter, FiFlag } from 'react-icons/fi';
 import { ChevronDownIcon } from '@chakra-ui/icons';
 import { Link, Navigate } from 'react-router-dom';
 import { useState } from 'react';
@@ -47,6 +50,7 @@ import Banner from '../components/Banner';
 import { useAuth } from "../contexts/AuthContext";
 //import InfiniteScroll from 'react-infinite-scroll-component';
 import Navbar from '../components/Navbar';
+import React from 'react';
 import confetti from "canvas-confetti";
 
 
@@ -67,7 +71,7 @@ const BookCard = ({
     ...(book.department ? [book.department] : []),
   ];
   
-  const maxTotalLength = 12; // Adjust this number to fit Hyour layout
+  const maxTotalLength = 12; // Adjust this number to fit your layout
   let totalLength = 0;
   const visibleTags = [];
   const hiddenTags = [];
@@ -80,6 +84,25 @@ const BookCard = ({
       hiddenTags.push(tag);
     }
   });
+
+
+  // const subjectColors = {
+  //     math: '#F33A3A40',
+  //     english: '#E8C81740',
+  //     science: '#7EC74340',
+  //     'visual and performing arts': '#DD933340',
+  //     'first-year signature course': '#D553AC40',
+  //     government: '#9434E340',
+  //     history: '#50B8F040',
+  //   };
+  
+    const [showSharePopup, setShowSharePopup] = useState(false);
+    const shareUrl = `https://yourapp.com/listings/${book.id}`; // replace with actual URL
+    const { hasCopied, onCopy } = useClipboard(shareUrl);
+    //const { isOpen, onOpen, onClose } = useDisclosure();
+    const [showReportOverlay, setShowReportOverlay] = useState(false);
+
+
   const handleNextImage = () => {
     setImgIndex((prevIndex) => (prevIndex + 1) % book.image.length);
   };
@@ -285,48 +308,48 @@ const BookCard = ({
           </Text>
           
           <Flex gap={1} mb={2} flexWrap="wrap">
-                      {visibleTags.map((tag, idx) => {
-                        let bgColor = "gray.300";               // fallback
-                        if (tag === book.subject) {
-                          bgColor = "rgba(200,226,240,1)";
-                        } else if (tag === book.condition) {
-                          bgColor = "rgba(221,147,51,0.47)";
-                        } else if (tag === book.department) {
-                          bgColor = "rgba(231,185,216,1)";
-                        }
-                        return (
-                          <Badge
-                            key={idx}
-                            bgColor={bgColor}
-                            borderRadius="30px"
-                            px={2}
-                            py={1}
-                            fontSize="x-small"
-                            fontWeight="semibold"
-                            whiteSpace="nowrap"
-                          >
-                            {tag}
-                          </Badge>
-                        );
-                      })}
-                      {hiddenTags.length > 0 && (
-                        <Badge
-                          bgColor="gray.300"
-                          borderRadius={30}
-                          p={1}
-                          px={2}
-                          fontSize="x-small"
-                          fontWeight="semibold"
-                        >
-                          +{hiddenTags.length}
-                        </Badge>
-                      )}
-                    </Flex>
+            {visibleTags.map((tag, idx) => {
+              let bgColor = "gray.300";               // fallback
+              if (tag === book.subject) {
+                bgColor = "rgba(200,226,240,1)";
+              } else if (tag === book.condition) {
+                bgColor = "rgba(221,147,51,0.47)";
+              } else if (tag === book.department) {
+                bgColor = "rgba(231,185,216,1)";
+              }
+              return (
+                <Badge
+                  key={idx}
+                  bgColor={bgColor}
+                  borderRadius="30px"
+                  px={2}
+                  py={1}
+                  fontSize="x-small"
+                  fontWeight="semibold"
+                  whiteSpace="nowrap"
+                >
+                  {tag}
+                </Badge>
+              );
+            })}
+            {hiddenTags.length > 0 && (
+              <Badge
+                bgColor="gray.300"
+                borderRadius={30}
+                p={1}
+                px={2}
+                fontSize="x-small"
+                fontWeight="semibold"
+              >
+                +{hiddenTags.length}
+              </Badge>
+            )}
+          </Flex>
           
           <Text 
             fontSize="sm" 
             fontWeight="light"
-            color="gray.500"
+            color="black"
           >
             ${book.price}
           </Text>
@@ -485,7 +508,7 @@ const BookCard = ({
                       borderRadius={20}
                       p={5}
                     ></IconButton>
-                    <IconButton
+                    {/* <IconButton
                       icon={
                         <svg
                           xmlns="http://www.w3.org/2000/svg"
@@ -507,7 +530,102 @@ const BookCard = ({
                       bgColor="rgba(221, 147, 51, 0.47)"
                       borderRadius={20}
                       p={5}
-                    />
+                    /> */}
+                    <Button
+                          bgColor="rgba(221, 147, 51, 0.47)"
+                          borderRadius={20}
+                          p={1}
+                          px={5}
+                          fontSize="sm"
+                          fontWeight="semibold"
+                          onClick={() => {
+                            onCopy();
+                            toast({
+                              title: "Link copied!",
+                              description: "The listing link has been copied to your clipboard.",
+                              status: "success",
+                              duration: 3000,
+                              isClosable: true,
+                            });
+                          }}
+                        >
+                      <Icon
+                            as={() => (
+                              <svg
+                                xmlns="http://www.w3.org/2000/svg"
+                                width="15"
+                                viewBox="0 0 24 24"
+                                fill="none"
+                                stroke="currentColor"
+                                strokeWidth="2"
+                                strokeLinecap="round"
+                                strokeLinejoin="round"
+                              >
+                                <circle cx="18" cy="5" r="3" />
+                                <circle cx="6" cy="12" r="3" />
+                                <circle cx="18" cy="19" r="3" />
+                                <line x1="8.59" y1="13.51" x2="15.42" y2="17.49" />
+                                <line x1="15.41" y1="6.51" x2="8.59" y2="10.49" />
+                              </svg>
+                            )}
+                          />
+                        </Button>
+                  {showSharePopup && (
+                    <Box
+                      position="fixed"
+                      top="0"
+                      left="0"
+                      w="100vw"
+                      h="100vh"
+                      bg="rgba(0, 0, 0, 0.4)"
+                      zIndex="2000"
+                      display="flex"
+                      justifyContent="center"
+                      alignItems="center"
+                    >
+                      <Box
+                        bg="white"
+                        p={6}
+                        borderRadius="md"
+                        maxW="400px"
+                        w="90%"
+                        boxShadow="lg"
+                      >
+                        <Text fontSize="lg" fontWeight="semibold" mb={3}>
+                          Share this listing
+                        </Text>
+
+                        <VStack spacing={3}>
+                          <Input value={shareUrl} isReadOnly bg="gray.100" />
+                          <Button
+                            size="sm"
+                            onClick={() => {
+                              onCopy();
+                              toast({
+                                title: "Link copied!",
+                                description: "The listing link has been copied to your clipboard.",
+                                status: "success",
+                                duration: 3000,
+                                isClosable: true,
+                              });
+                            }}
+                            colorScheme="blue"
+                            w="100%"
+                          >
+                            Copy Link
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() => setShowSharePopup(false)}
+                          >
+                            Cancel
+                          </Button>
+                        </VStack>
+                      </Box>
+                    </Box>
+                  )}
+
                    <Button
                       bgColor="rgba(221, 147, 51, 0.47)"
                       borderRadius={20}
@@ -515,7 +633,63 @@ const BookCard = ({
                       px={5}
                       fontSize="sm"
                       fontWeight="semibold"
-                    >...</Button>
+                      onClick={() => setShowReportOverlay(true)}
+                     >
+                    <Icon as={FiFlag} />
+                    </Button>
+
+                    {showReportOverlay && (
+                      <Box
+                        position="fixed"
+                        top="0"
+                        left="0"
+                        w="100vw"
+                        h="100vh"
+                        bg="rgba(0, 0, 0, 0.4)"
+                        zIndex="2000"
+                        display="flex"
+                        justifyContent="center"
+                        alignItems="center"
+                      >
+                        <Box
+                          bg="white"
+                          p={8}
+                          borderRadius="md"
+                          maxW="500px"
+                          w="90%"
+                          boxShadow="lg"
+                        >
+                          <Text fontSize="lg" mb={4}>
+                            Why are you reporting this listing?
+                          </Text>
+                          <VStack spacing={3}>
+                            <Select placeholder="Select reason" bgColor="#D9D9D9">
+                              <option value="spam" >Spam</option>
+                              <option value="inappropriate">Inappropriate content</option>
+                              <option value="misleading">Misleading information</option>
+                            </Select>
+                            <Textarea placeholder="Please Explain" bgColor="#D9D9D9" />
+                            <Button
+                              bgColor="#DD8533"
+                              color="white"
+                              w="100%"
+                              borderRadius="full"
+                              onClick={() => setShowReportOverlay(false)}
+                            >
+                              Report Listing
+                            </Button>
+                            <Button
+                              variant="ghost"
+                              size="sm"
+                              onClick={() => setShowReportOverlay(false)}
+                            >
+                              Cancel
+                            </Button>
+                          </VStack>
+                        </Box>
+                      </Box>
+                    )}
+
                   </Flex>
                 </Box>
                     
@@ -913,7 +1087,7 @@ const HomePage = () => {
             Sort
           </MenuButton>
           <MenuList>
-            <MenuOptionGroup defaultValue="low" title="Sort by" type="radio">
+            <MenuOptionGroup defaultValue="recent" title="Sort by" type="radio" onChange={(value) => setSortOption(value)}>
               <MenuItemOption value="low">Price: low to high</MenuItemOption>
               <MenuItemOption value="high">Price: high to low</MenuItemOption>
               <MenuItemOption value="recent">Recently Listed</MenuItemOption>
@@ -944,8 +1118,8 @@ const HomePage = () => {
       }}
     />
 
-      <Box p={4} bg="gray.50" minHeight="100vh">
-      <Box w={{ base: "100%", md: "80%" }} mx="auto">
+      <Box p={4} bg="white" minHeight="100vh">
+      <Box w={{ base: "100%", md: "95%" }} mx="auto">
         <Grid 
           templateColumns={{
             base: 'repeat(2, 1fr)', 

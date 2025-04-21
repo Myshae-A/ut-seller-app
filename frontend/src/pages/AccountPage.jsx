@@ -221,7 +221,7 @@ const BookCard = ({
             {/* solid pill behind the text */}
             <Box
               bg="green.600"
-              px={10}
+              px={20}
               borderRadius="md"
             >
             <Text
@@ -738,7 +738,6 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
     const [boughtBooks, setBoughtBooks] = useState([]);
     const [soldBooks, setSoldBooks] = useState([]);
     const [postedBooks, setPostedBooks] = useState([]);
-    const [savedBooks, setSavedBooks] = useState([]);
 
 
     // newer variables
@@ -751,6 +750,13 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
     const { currentUser, authBooksRequested } = useAuth();
     const toast = useToast();
     const [favIds, setFavIds] = useState([])
+
+    // const [savedBooks, setSavedBooks] = useState([]);
+    // derive savedBooks directly:
+    const savedBooks = useMemo(
+      () => books.filter(b => favIds.includes(b.id)),
+      [books, favIds]
+    );
     // const [triggerName, setTriggerName] = useState();
 
 
@@ -777,22 +783,28 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
     // }, [currentUser])
 
     // 2) whenever favIds change, fetch each product & mark favorite=true
-    useEffect(() => {
-      if (favIds.length === 0) {
-        setSavedBooks([])
-        return
-      }
-      (async () => {
-        const proms = favIds.map(id =>
-          fetchProductById(id).then(r => r.product || r)
-        )
-        const prods = await Promise.all(proms)
-        // stamp each one
-        setSavedBooks(
-          prods.map(p => ({ ...p, favorite: favIds.includes(p.id) }))
-        )
-      })()
-    }, [favIds])
+    // PREVIOUSLY USED CODE:
+    // useEffect(() => {
+    //   if (favIds.length === 0) {
+    //     setSavedBooks([])
+    //     return
+    //   }
+    //   (async () => {
+    //     const proms = favIds.map(id =>
+    //       fetchProductById(id).then(res => {
+    //         // grab the real product object
+    //         const data = res.product ?? res
+    //         return { ...data, favorite: true }
+    //       })
+    //     )
+    //     const prods = await Promise.all(proms)
+    //     // stamp each one
+    //     // setSavedBooks(
+    //     //   prods.map(p => ({ ...p, favorite: favIds.includes(p.id) }))
+    //     // )
+    //     setSavedBooks(prods)
+    //   })()
+    // }, [favIds])
 
     // 3) tweak your toggle handler to update favIds
     const handleToggleFavorite = async bookId => {
@@ -1206,10 +1218,10 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
     // };
   
     return (  
-        <Box bg="white">
+        <Box bg="white" minH="100vh">
             <Navbar />
                 {/* Profile Section */}
-                <Container maxWidth="60%" pt="6" pb="4" >
+                <Container maxWidth="60%" pt="6" pb="4">
 
                     <Flex direction="row" align="center" gap={8} justify="flex-start">
                         <Box>

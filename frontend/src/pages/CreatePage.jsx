@@ -505,6 +505,7 @@ const CreatePage = () => {
             onClick={handleAddProduct}
             isLoading={isUploading}
             loadingText="Uploading"
+            color="white"
           >
             Upload
           </Button>
