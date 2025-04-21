@@ -238,7 +238,7 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
                       {visibleTags.map((tag, idx) => (
                         <Badge
                           key={idx}
-                          bgColor={subjectColors[book.subject.toLowerCase()] || "rgba(221, 147, 51, 0.47)"}
+                          bgColor={subjectColors[tag.toLowerCase()] || "rgba(221, 147, 51, 0.47)"}
                           borderRadius={30}
                           p={1}
                           px={2}
