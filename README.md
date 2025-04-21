@@ -7,9 +7,9 @@
 <br><br>![Home Page](https://github.com/user-attachments/assets/271b0792-031f-41b1-b5a6-e0b4dbde9a91)
 
 # ✨ Features
-- 📚 List and Browse Used Books
-Users can upload books for sale with title, subject, images, and price. <br>
-- 🔍 Smart Filtering and Search
+- 📚 **List and Browse Used Books**  
+Users can upload books for sale with title, subject, images, and price.  
+- 🔍 **Smart Filtering and Search**  
 Filter listings by subject, condition, and price range, or search by keyword. <br>
-- 🛠️ Real-Time Form Validation
+- 🛠️ **Real-Time Form Validation**  
 Required fields and visual feedback help ensure accurate listings and safe transactions for UT Students. <br>
