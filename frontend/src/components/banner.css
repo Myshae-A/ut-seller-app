@@ -1,0 +1,10 @@
+.banner-scroller {
+    display: flex;
+    flex-wrap: nowrap;
+    animation: scroll-left 120s linear infinite;
+}
+
+@keyframes scroll-left {
+    from { transform: translateX(0); }
+    to   { transform: translateX(-50%); }
+}

@@ -32,9 +32,9 @@ import {
   Textarea,
 } from '@chakra-ui/react';
 import { FiFilter, FiFlag } from 'react-icons/fi';
-import { ChevronDownIcon } from '@chakra-ui/icons';
+import { ChevronDownIcon, ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import { Link, Navigate } from 'react-router-dom';
-import { useState } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { HiHeart } from "react-icons/hi";
 import SideSearchTab from '../components/SideBar';
 import {
@@ -45,7 +45,6 @@ import {
   updateUserFavorite,
   fetchUserFavorites,
 } from '../services/api';
-import { useEffect } from 'react';
 import Banner from '../components/Banner';
 import { useAuth } from "../contexts/AuthContext";
 //import InfiniteScroll from 'react-infinite-scroll-component';
@@ -64,6 +63,8 @@ const BookCard = ({
   const [imgIndex, setImgIndex] = useState(0);
   const toast = useToast();
   // const { updateBooksRequested } = useAuth(); // Assuming you have a context or state management for this
+  const images = [book.image, ...(book.additionalImages || [])];
+  const closeBtnRef = useRef(null);
 
   const tags = [
     ...(book.subject ? [book.subject] : []),
@@ -104,8 +105,12 @@ const BookCard = ({
 
 
   const handleNextImage = () => {
-    setImgIndex((prevIndex) => (prevIndex + 1) % book.image.length);
+    setImgIndex(i => (i + 1) % images.length);
   };
+  const handlePrevImage = () => {
+    setImgIndex(i => (i === 0 ? images.length - 1 : i - 1));
+  };
+
 
   const handleMakeRequest = async () => {
     if (!currentUser) {
@@ -256,13 +261,14 @@ const BookCard = ({
               zIndex={1}               // above the image
             >
               {/* solid pill behind the text */}
-              <Box bg="blue.600" px={10} borderRadius="md">
+              <Box bg="blue.600" px={20} borderRadius="md">
                 <Text
                   fontSize="xl"
                   fontWeight="bold"
                   color="white"         // white for contrast
                   textAlign="center"
                   lineHeight="1"
+                  transform="translateY(6px)"
                 >
                   REQUESTED
                 </Text>
@@ -356,7 +362,12 @@ const BookCard = ({
         </Box>
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="2xl" >
+      <Modal
+      initialFocusRef={closeBtnRef}
+      isOpen={isOpen}
+      onClose={onClose}
+      size="2xl"
+      >
         <ModalOverlay />
         <ModalContent 
           borderRadius={15} 
@@ -365,9 +376,9 @@ const BookCard = ({
           bgColor="rgb(226, 225, 225)"
           p={5}
         >
-          <Flex direction={{ base: 'row' }} p={5}>
+          <Flex direction={{ base: 'row' }} p={5} gap={4}>
             <Box 
-              w={{ base: '40%'}} 
+              w={{ base: '60%', md: '60%', sm: '50%' }} 
               borderRadius="md"
               pb={4}
               position="relative"
@@ -375,8 +386,10 @@ const BookCard = ({
               alignItems="center"
               justifyContent="center"
             >
+              {/* Carousel image */}
               <Image 
-                  src={book.image} // show current image - got rid of book.image[imgIndex]
+                  // src={book.image} // show current image - got rid of book.image[imgIndex]
+                  src={images[imgIndex]}
                   alt={book.title}
                   objectFit="cover"
                   width="200px"
@@ -386,8 +399,57 @@ const BookCard = ({
                   onClick={handleNextImage} // cycle to next image
                   cursor="pointer"
                 />
-            </Box>
 
+              
+              {/* 4) Prev / Next arrows */}
+              <Flex mt={2} gap={2} justifyContent="center">
+              <Tooltip
+                label={images.length === 1
+                  ? '1 image'
+                  : `${imgIndex + 1}/${images.length}`}
+                placement="top"
+                hasArrow
+              >
+              <IconButton
+                icon={<ChevronLeftIcon w={8} h={8} />}
+                aria-label="Previous image"
+                variant="solid"
+                bg="whiteAlpha.900"    // white @ 80% opacity
+                color="black"
+                opacity={0.85}
+                position="absolute"
+                left="-20px"
+                top="50%"
+                transform="translateY(-50%)"
+                onClick={e => { e.stopPropagation(); handlePrevImage() }}
+              />
+              </Tooltip>
+
+              <Tooltip
+                label={images.length === 1
+                  ? '1 image'
+                  : `${imgIndex + 1}/${images.length}`}
+                placement="top"
+                hasArrow
+              >
+              <IconButton
+                icon={<ChevronRightIcon w={8} h={8} />}
+                aria-label="Next image"
+                variant="solid"
+                bg="whiteAlpha.900"    // white @ 80% opacity
+                color="black"
+                opacity={0.85}
+                position="absolute"
+                right="-5px"
+                top="50%"
+                transform="translateY(-50%)"
+                onClick={e => { e.stopPropagation(); handleNextImage() }}
+              />
+              </Tooltip>
+              </Flex>
+              
+            </Box>
+            
             <Divider 
               orientation="vertical" 
               borderColor="gray.600" 
@@ -398,7 +460,7 @@ const BookCard = ({
             <Box
               w={{ base: '60%'}} 
             >
-            <ModalCloseButton />
+            <ModalCloseButton ref={closeBtnRef}/>
             <ModalBody>
               <Flex
                 flexDirection="column"
@@ -410,19 +472,6 @@ const BookCard = ({
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
-                    {/* {book.categories && book.categories.map((cat, idx) => (
-                      <Badge 
-                        key={idx} 
-                        bgColor="rgba(221, 147, 51, 0.47)"
-                        borderRadius={30}
-                        p={1}
-                        px={2}
-                        fontSize="x-small"
-                        fontWeight="semibold"
-                      >
-                        {cat}
-                      </Badge>
-                    ))} */}
                     {book.subject && (
                       <Badge 
                         bgColor="rgba(200,226,240,1)"
@@ -732,6 +781,7 @@ const HomePage = () => {
   const [gotOriginalBooks, setGotOriginalBooks] = useState(false); // Track if original books are fetched
   const [searchQuery, setSearchQuery] = useState(""); // Search query
   const [favIds, setFavIds] = useState([]);
+  const [sortOption, setSortOption] = useState('recent');
   // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // filter states:
@@ -1059,6 +1109,20 @@ const HomePage = () => {
 
   };
 
+
+  // 2) derive sortedBooks
+  const sortedBooks = useMemo(() => {
+    switch (sortOption) {
+      case 'low':
+        return [...books].sort((a, b) => a.price - b.price);
+      case 'high':
+        return [...books].sort((a, b) => b.price - a.price);
+      default:
+        return books; // “recent” or any other
+    }
+  }, [books, sortOption]);
+
+
   return (
     <Box bg="white" minHeight="100vh">
     
@@ -1087,7 +1151,7 @@ const HomePage = () => {
             Sort
           </MenuButton>
           <MenuList>
-            <MenuOptionGroup defaultValue="recent" title="Sort by" type="radio" onChange={(value) => setSortOption(value)}>
+          <MenuOptionGroup defaultValue={sortOption} title="Sort by" type="radio" onChange={setSortOption}>
               <MenuItemOption value="low">Price: low to high</MenuItemOption>
               <MenuItemOption value="high">Price: high to low</MenuItemOption>
               <MenuItemOption value="recent">Recently Listed</MenuItemOption>
@@ -1129,7 +1193,7 @@ const HomePage = () => {
           }}
           gap={4}
         >
-          {books.length > 0 ? books.map(book => (
+          {sortedBooks.length > 0 ? sortedBooks.map(book => (
             <BookCard 
               key={book.id} 
               book={book} 

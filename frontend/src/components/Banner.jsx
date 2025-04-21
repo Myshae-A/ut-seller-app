@@ -1,5 +1,5 @@
 import { Box, Flex, Text, Image } from "@chakra-ui/react";
-import banner_image from "../images/banner.png";
+// import banner_image from "../images/banner.png";
 import { InfiniteSlider } from './InfiniteSlider';
 import p1 from '../images/p1.png';
 import p2 from '../images/p2.png';
@@ -13,26 +13,43 @@ import p9 from '../images/p9.png';
 import p10 from '../images/p10.png';
 import p11 from '../images/p11.png';
 
+import "./banner.css"; 
+
 const Banner = () => {
   const images = [p1, p2, p3, p4, p5, p6, p7, p8, p9, p10, p11];
+  const loop = [...images, ...images]
 
   return (
-    <Box position="relative" width="100%" height="300px">
-        <InfiniteSlider direction="horizontal">
-          {images.map((src, index) => (
-            <img
-              key={index}
-              src={src}
-              alt={`Slide ${index + 1}`}
-              style={{
-                width: '200px',
-                height: '300px',
-                objectFit: 'cover',
-                opacity: 0.6,
-                filter: 'drop-shadow(0 0 5px rgba(0, 0, 0, 0.3))',
-              }}        />
+    <Box position="relative" width="100%" height="300px" overflow="hidden">
+        
+        <Flex
+          className="banner-scroller"
+          as="div"
+          align="center"
+          h="100%"
+          userSelect="none"
+          flexWrap="nowrap"
+          width="max-content"
+        >
+          {/* Allows infinite scroll without abrupt change (uses css) */}
+          {loop.map((src, i) => (
+            <Box key={i} minW="200px" h="300px" flexShrink={0}>
+              <img
+                src={src}
+                alt={`Slide ${i % images.length + 1}`}
+                style={{
+                  width: "200px",
+                  height: "300px",
+                  objectFit: "cover",
+                  opacity: 0.6,
+                  filter: "drop-shadow(0 0 5px rgba(0,0,0,0.3))",
+                }}
+              />
+            </Box>
           ))}
-        </InfiniteSlider>
+        </Flex>
+
+
         <Text
            position="absolute"
            top="40%"

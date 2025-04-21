@@ -36,9 +36,10 @@ import {
   ModalBody, 
   ModalCloseButton,
   useDisclosure,
-  useToast
+  useToast,
+  Tooltip,
 } from '@chakra-ui/react';
-import { AddIcon, StarIcon } from '@chakra-ui/icons';
+import { ChevronLeftIcon, ChevronRightIcon } from '@chakra-ui/icons';
 import {
   fetchProducts,
   fetchProductById,
@@ -91,7 +92,16 @@ const BookCard = ({
   const { hasCopied, onCopy } = useClipboard(shareUrl);
   const toast = useToast();
 
-
+  const [imgIndex, setImgIndex] = useState(0);
+  const images = [ book.image, ...(book.additionalImages||[]) ];
+  const closeBtnRef = useRef(null);
+  
+  const handleNextImage = () => {
+    setImgIndex(i => (i + 1) % images.length);
+  };
+  const handlePrevImage = () => {
+    setImgIndex(i => (i === 0 ? images.length - 1 : i - 1));
+  };
 
   // const userRequestedNames = useMemo(() => {
   //   return book.usersRequested.map((id) => ({
@@ -382,7 +392,12 @@ const BookCard = ({
         </Box>
       </Box>
 
-      <Modal isOpen={isOpen} onClose={onClose} size="2xl" >
+      <Modal
+        initialFocusRef={closeBtnRef}
+        isOpen={isOpen}
+        onClose={onClose}
+        size="2xl"
+      >
         <ModalOverlay />
         <ModalContent 
           borderRadius={15} 
@@ -391,26 +406,78 @@ const BookCard = ({
           bgColor="rgb(226, 225, 225)"
           p={5}
         >
-          <Flex direction={{ base: 'row' }} p={5}>
-            <Box 
-              w={{ base: '40%'}} 
-              borderRadius="md"
-              pb={4}
-              position="relative"
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
+          <Flex direction={{ base: 'row' }} p={5} gap={4}>
+          <Box 
+            w={{ base: '60%', md: '60%', sm: '50%' }} 
+            borderRadius="md"
+            pb={4}
+            position="relative"
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+          >
+            {/* Carousel image */}
+            <Image 
+                // src={book.image} // show current image - got rid of book.image[imgIndex]
+                src={images[imgIndex]}
+                alt={book.title}
+                objectFit="cover"
+                width="200px"
+                height="300px"
+                borderRadius="10px"
+                mr={4}
+                onClick={handleNextImage} // cycle to next image
+                cursor="pointer"
+              />
+
+            
+            {/* 4) Prev / Next arrows */}
+            <Flex mt={2} gap={2} justifyContent="center">
+            <Tooltip
+              label={images.length === 1
+                ? '1 image'
+                : `${imgIndex + 1}/${images.length}`}
+              placement="top"
+              hasArrow
             >
-              <Image 
-                  src={book.image}
-                  alt={book.name}
-                  objectFit="cover"
-                  width="200px"
-                  height="300px"
-                  borderRadius="10px"
-                  mr={4}
-                />
-            </Box>
+            <IconButton
+              icon={<ChevronLeftIcon w={8} h={8} />}
+              aria-label="Previous image"
+              variant="solid"
+              bg="whiteAlpha.900"    // white @ 80% opacity
+              color="black"
+              opacity={0.85}
+              position="absolute"
+              left="-20px"
+              top="50%"
+              transform="translateY(-50%)"
+              onClick={e => { e.stopPropagation(); handlePrevImage() }}
+            />
+            </Tooltip>
+
+            <Tooltip
+              label={images.length === 1
+                ? '1 image'
+                : `${imgIndex + 1}/${images.length}`}
+              placement="top"
+              hasArrow
+            >
+            <IconButton
+              icon={<ChevronRightIcon w={8} h={8} />}
+              aria-label="Next image"
+              variant="solid"
+              bg="whiteAlpha.900"    // white @ 80% opacity
+              color="black"
+              opacity={0.85}
+              position="absolute"
+              right="-5px"
+              top="50%"
+              transform="translateY(-50%)"
+              onClick={e => { e.stopPropagation(); handleNextImage() }}
+            />
+            </Tooltip>
+            </Flex>
+          </Box>
 
             <Divider 
               orientation="vertical" 
@@ -422,7 +489,7 @@ const BookCard = ({
             <Box
               w={{ base: '60%'}} 
             >
-            <ModalCloseButton />
+            <ModalCloseButton ref={closeBtnRef} />
             <ModalBody>
               <Flex
                 flexDirection="column"
