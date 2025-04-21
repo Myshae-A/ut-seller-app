@@ -72,7 +72,7 @@ const BookCard = ({
     ...(book.department ? [book.department] : []),
   ];
   
-  const maxTotalLength = 12; // Adjust this number to fit your layout
+  const maxTotalLength = 20; // Adjust this number to fit your layout
   let totalLength = 0;
   const visibleTags = [];
   const hiddenTags = [];
@@ -1183,7 +1183,7 @@ const HomePage = () => {
     />
 
       <Box p={4} bg="white" minHeight="100vh">
-      <Box w={{ base: "100%", md: "95%" }} mx="auto">
+      <Box w={{ base: "100%", md: "75%" }} mx="auto">
         <Grid 
           templateColumns={{
             base: 'repeat(2, 1fr)', 

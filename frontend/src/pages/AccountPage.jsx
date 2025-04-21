@@ -73,7 +73,7 @@ const BookCard = ({
     ...(book.department ? [book.department] : []),
   ];
   // Need a smaller number than 23 as it previously was
-  const maxTotalLength = 12; 
+  const maxTotalLength = 15; 
   let totalLength = 0;
   const visibleTags = [];
   const hiddenTags = [];
@@ -1322,7 +1322,7 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
 
                 {/* Tabs Section */}
                 <Box>
-                <Container maxW="container.lg" p="0">
+                <Container maxW="container.xl" p="0">
                     <Tabs variant="line" colorScheme="orange" isFitted>
                     <TabList>
                         <Tab>All</Tab>
