@@ -25,7 +25,8 @@ import {
   ModalCloseButton,
   Select,
   useDisclosure,
-  useToast
+  useToast,
+  Tooltip
 } from '@chakra-ui/react';
 import { FiFilter } from 'react-icons/fi';
 import { ChevronDownIcon } from '@chakra-ui/icons';
@@ -37,17 +38,24 @@ import {
   fetchProducts,
   fetchProductById,
   addProductToUser,
-  updateUsersRequestedGlobally
+  updateUsersRequestedGlobally,
+  updateUserFavorite,
+  fetchUserFavorites,
 } from '../services/api';
 import { useEffect } from 'react';
 import Banner from '../components/Banner';
 import { useAuth } from "../contexts/AuthContext";
 //import InfiniteScroll from 'react-infinite-scroll-component';
 import Navbar from '../components/Navbar';
+import confetti from "canvas-confetti";
 
 
-
-const BookCard = ({ book, onToggleFavorite, currentUser }) => {
+const BookCard = ({
+  book,
+  onToggleFavorite,
+  currentUser,
+  onRequestMade,
+}) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [imgIndex, setImgIndex] = useState(0);
   const toast = useToast();
@@ -56,9 +64,10 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
   const tags = [
     ...(book.subject ? [book.subject] : []),
     ...(book.condition ? [book.condition] : []),
+    ...(book.department ? [book.department] : []),
   ];
   
-  const maxTotalLength = 23; // Adjust this number to fit your layout
+  const maxTotalLength = 12; // Adjust this number to fit Hyour layout
   let totalLength = 0;
   const visibleTags = [];
   const hiddenTags = [];
@@ -104,6 +113,7 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
       const requestedProduct = await fetchProductById(book.id); // Assuming you have a function to get the product by ID
       const userId = currentUser.uid;
       console.log("[HOMEPAGE] requestedProduct: ", requestedProduct);
+      console.log("FINAL 1");
 
       const productData = requestedProduct.product || requestedProduct; // Adjust based on your API response structure
       // console.log("requestedProduct as JSON: ", JSON.stringify(requestedProduct));
@@ -120,21 +130,52 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
       console.log("userPostedID: ", userPostedId);
 
       // Add the product to the user's userProducts list
-      await addProductToUser(userId, formattedProduct);
+      setTimeout(async () => {
+        await addProductToUser(userId, formattedProduct);
+      }, 500); // Adjust the delay as needed
+      console.log("FINAL 2");
 
-      await updateUsersRequestedGlobally(userId, book.id, userPostedId); // Assuming you have a function to update the user's requested products
-
+      setTimeout(async () => {
+        await updateUsersRequestedGlobally(userId, book.id, userPostedId);
+      }, 500); // Adjust the delay as needed
+      console.log("FINAL 3");
       
-      
-      // console.log("requested Product here, new testgin"+JSON.stringify(formattedProduct));
 
-      toast({
-        title: "Success",
-        description: "Request sent successfully!",
-        status: "success",
-        duration: 3000,
-        isClosable: true,
-      });
+      console.log("requested Product here, new testgin"+JSON.stringify(formattedProduct));
+
+      onRequestMade(book.id); // Call the function to update the user's requested products in the parent component
+      // PRAISE GOD!! YAY it workssss!!!!!!!
+
+
+      // fire confetti!
+      const count = 200
+      const defaults = { origin: { y: 0.7 } }
+      function fire(particleRatio, opts) {
+        confetti({
+          ...defaults,
+          ...opts,
+          zIndex: 9999,
+          particleCount: Math.floor(count * particleRatio)
+        })
+      }
+      fire(0.25, { spread: 26, startVelocity: 55 })
+      fire(0.2,  { spread: 60 })
+      fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 })
+      fire(0.1,  { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 })
+      fire(0.1,  { spread: 120, startVelocity: 45 })
+
+
+      // might take this onClose out and add confetti instead...
+      // onClose(); // Close the modal after making the request
+
+      // toast({
+      //   title: "Success",
+      //   description: "Request sent! 🎉",
+      //   status: "success",
+      //   duration: 3000,
+      //   isClosable: true,
+      //   position: "top",
+      // });
     } catch (error) {
       console.log("Error making request:", error);
       toast({
@@ -147,6 +188,8 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
     }
     
   };
+
+  const already = book.usersRequested.includes(currentUser.uid)
   
   return (
     <>
@@ -174,6 +217,35 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
             width="full"
             height="full"
           />
+
+          {book.status === "requested" && (
+            <Box
+              position="absolute"
+              top={0}
+              left={0}
+              width="100%"
+              height="100%"
+              bg="rgba(0, 0, 0, 0.5)" // Transparent gray background
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
+              borderRadius={15}
+              zIndex={1}               // above the image
+            >
+              {/* solid pill behind the text */}
+              <Box bg="blue.600" px={10} borderRadius="md">
+                <Text
+                  fontSize="xl"
+                  fontWeight="bold"
+                  color="white"         // white for contrast
+                  textAlign="center"
+                  lineHeight="1"
+                >
+                  REQUESTED
+                </Text>
+              </Box>
+            </Box>
+          )}
 
           <button
             onClick={(e) => {
@@ -212,20 +284,31 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
             {book.name}
           </Text>
           
-          <Flex gap={2} mb={2} flexWrap="wrap">
-                      {visibleTags.map((tag, idx) => (
-                        <Badge
-                          key={idx}
-                          bgColor="rgba(221, 147, 51, 0.47)"
-                          borderRadius={30}
-                          p={1}
-                          px={2}
-                          fontSize="x-small"
-                          fontWeight="semibold"
-                        >
-                          {tag}
-                        </Badge>
-                      ))}
+          <Flex gap={1} mb={2} flexWrap="wrap">
+                      {visibleTags.map((tag, idx) => {
+                        let bgColor = "gray.300";               // fallback
+                        if (tag === book.subject) {
+                          bgColor = "rgba(200,226,240,1)";
+                        } else if (tag === book.condition) {
+                          bgColor = "rgba(221,147,51,0.47)";
+                        } else if (tag === book.department) {
+                          bgColor = "rgba(231,185,216,1)";
+                        }
+                        return (
+                          <Badge
+                            key={idx}
+                            bgColor={bgColor}
+                            borderRadius="30px"
+                            px={2}
+                            py={1}
+                            fontSize="x-small"
+                            fontWeight="semibold"
+                            whiteSpace="nowrap"
+                          >
+                            {tag}
+                          </Badge>
+                        );
+                      })}
                       {hiddenTags.length > 0 && (
                         <Badge
                           bgColor="gray.300"
@@ -265,6 +348,9 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
               borderRadius="md"
               pb={4}
               position="relative"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
             >
               <Image 
                   src={book.image} // show current image - got rid of book.image[imgIndex]
@@ -301,7 +387,7 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
-                    {book.categories && book.categories.map((cat, idx) => (
+                    {/* {book.categories && book.categories.map((cat, idx) => (
                       <Badge 
                         key={idx} 
                         bgColor="rgba(221, 147, 51, 0.47)"
@@ -313,7 +399,19 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
                       >
                         {cat}
                       </Badge>
-                    ))}
+                    ))} */}
+                    {book.subject && (
+                      <Badge 
+                        bgColor="rgba(200,226,240,1)"
+                        borderRadius={30}
+                        p={1}
+                        px={2}
+                        fontSize="x-small"
+                        fontWeight="semibold"
+                      >
+                        {book.subject}
+                      </Badge>
+                    )}
                     {book.condition && (
                       <Badge 
                         bgColor="rgba(221, 147, 51, 0.47)"
@@ -326,17 +424,44 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
                         {book.condition}
                       </Badge>
                     )}
+                    {book.department && (
+                      <Badge 
+                        bgColor="rgba(231,185,216,1)"
+                        borderRadius={30}
+                        p={1}
+                        px={2}
+                        fontSize="x-small"
+                        fontWeight="semibold"
+                      >
+                        {book.department}
+                      </Badge>
+                    )}
                   </Flex>
                 </Box>
                 <Button
                   bgColor={"rgb(221, 147, 51)"}
                   borderRadius={20}
                   onClick={handleMakeRequest}
+                  isDisabled={already}
                 >
                   {/*no link functionality yet*/}
-                  <Link style={{ fontWeight:'lighter' }}>
-                    Make a Request
-                  </Link>
+                  {/* <Link style={{ fontWeight:'lighter' }}>
+                  {book.usersRequested.includes(currentUser.uid)
+                    ? "Already Requested"
+                    : "Make a Request"}
+                  </Link> */}
+                  {already ? (
+                    // just plain text — no click
+                    <Text
+                      fontWeight="lighter"
+                      paddingTop="5%"
+                    >Already Requested</Text>
+                  ) : (
+                    // real link only when not requested
+                    <Link to="#" style={{ fontWeight: 'lighter' }}>
+                      Make a Request
+                    </Link>
+                  )}
                 </Button>
 
                 <Box mt={4}>
@@ -395,7 +520,19 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
                 </Box>
                     
                 <Text  mb={2}>{book.catalogue}</Text>
-                <Text  mb={2}>{book.description}</Text>
+                <Text mb={2}>
+                  Meetup Date:{' '}
+                  {book.meetupDateTime
+                    ? new Date(book.meetupDateTime).toLocaleString()
+                    : 'TBD'}
+                </Text>
+                <Text mb={2}>
+                  Location: {book.meetupLocation || 'TBD'}
+                </Text>
+                <Text mb={2}>
+                  Contact: {book.contactInfo || 'TBD'}
+                </Text>
+                <Text  mb={2}>Description: {book.description}</Text>
 
               </Flex>
             </ModalBody>
@@ -409,6 +546,7 @@ const BookCard = ({ book, onToggleFavorite, currentUser }) => {
 
 const HomePage = () => {
 
+  const { isOpen, onOpen, onClose } = useDisclosure()
   const { currentUser } = useAuth();
   // Olivia's working code
   const [books, setBooks] = useState([]);
@@ -419,8 +557,8 @@ const HomePage = () => {
   const [filteredBooks, setFilteredBooks] = useState([]); // Filtered books
   const [gotOriginalBooks, setGotOriginalBooks] = useState(false); // Track if original books are fetched
   const [searchQuery, setSearchQuery] = useState(""); // Search query
-  
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const [favIds, setFavIds] = useState([]);
+  // const [isSidebarOpen, setIsSidebarOpen] = useState(false);
 
   // filter states:
   const [selectedSubjects, setSelectedSubjects] = useState([]);
@@ -429,46 +567,162 @@ const HomePage = () => {
   const [selectedCatalogNumber, setSelectedCatalogNumber] = useState(""); // Track selected catalog number
   
 
+  // GREAT - OLD
   // Fetch products for the current page
-  const fetchMoreProducts = async () => {
-    try {
-      const limit = 10; // Number of products to fetch per page
-      const response = await fetchProducts(page, limit); // Pass page and limit to the API
-      if (response.length === 0) {
-        setHasMore(false); // No more products to load
-        return;
-      }
-      // Shows products that are NOT this user's in homepage
-      const filteredProducts = response.filter(
-        (product) =>
-          product.userPosted !== currentUser.uid &&
-          product.status !== "bought" &&
-          product.status !== "sold"
-      );
-      setBooks(filteredProducts); // Append new products to the list
+  // const fetchMoreProducts = async () => {
+  //   try {
+  //     const limit = 10; // Number of products to fetch per page
+  //     const response = await fetchProducts(page, limit); // Pass page and limit to the API
+  //     if (response.length === 0) {
+  //       setHasMore(false); // No more products to load
+  //       return [];
+  //     }
+  //     // Shows products that are NOT this user's in homepage
+  //     const filteredProducts = response.filter(
+  //       (product) =>
+  //         product.userPosted !== currentUser.uid &&
+  //         product.status !== "bought" &&
+  //         product.status !== "sold" &&
+  //         product.status !== "requested"
+  //     );
+  //     setBooks(filteredProducts); // Append new products to the list
 
-      // THIS SOLVES OUR "1st filter doesn't work" problem!!!!
-      setTimeout(() => {
-        setFilteredBooks(filteredProducts); // Initialize filteredBooks
-        setGotOriginalBooks(true); // Ensure this runs only once
-      }, 500); 
-      // console.log("filteredBooks TEST INTRO?: ", filteredBooks);
-      // setPage((prevPage) => prevPage + 1); // Increment the page number
-    } catch (error) {
-      console.error("Error fetching products:", error);
+  //     // THIS SOLVES OUR "1st filter doesn't work" problem!!!!
+  //     setTimeout(() => {
+  //       setFilteredBooks(filteredProducts); // Initialize filteredBooks
+  //       setGotOriginalBooks(true); // Ensure this runs only once
+  //     }, 500); 
+  //     // console.log("filteredBooks TEST INTRO?: ", filteredBooks);
+  //     // setPage((prevPage) => prevPage + 1); // Increment the page number
+
+  //     return filteredProducts;
+  //   } catch (error) {
+  //     console.error("Error fetching products:", error);
+  //     return [];
+  //   }
+  // };
+
+  const fetchMoreProducts = async () => {
+    const limit = 30;
+    const response = await fetchProducts(page, limit);
+    // if (response.length === 0) {
+    //   setHasMore(false);
+    // }
+    if (response.length < limit) {
+      setHasMore(false);
     }
+    return response;
   };
 
+
+  // useEffect(() => {
+  //   if (currentUser) {
+  //     fetchMoreProducts(); // Load the first page of products
+  //   }
+  //   if (books.length > 0 && !gotOriginalBooks) {
+  //     setFilteredBooks(books); // Store the original books
+  //     setGotOriginalBooks(true); // Ensure this runs only once
+  //     console.log("filteredBooks initialized:", books);
+  //   }
+  // }, [gotOriginalBooks]);
+
+   // 1) load favorites once
+   useEffect(() => {
+    if (!currentUser) return;
+    fetchUserFavorites(currentUser.uid).then(setFavIds);
+  }, [currentUser]);
+
+  // GREAT - OLD CODE
+  // useEffect(() => {
+  //   if (!currentUser)  return;
+    
+  //   const load = async () => {
+  //     // fetchMoreProducts(); // Load the first page of products
+  //     const fetched = await fetchMoreProducts();
+  //     setBooks(
+  //       fetched.map(b => ({
+  //         ...b,
+  //         favorite: favIds.includes(b.id)
+  //       }))
+  //     );
+
+  //     if (fetched.length > 0 && !gotOriginalBooks) {
+  //       setFilteredBooks(fetched); // Store the original books
+  //       setGotOriginalBooks(true); // Ensure this runs only once
+  //       console.log("filteredBooks initialized:", books);
+  //     }
+      
+  //   };
+  //   load();
+  // }, [currentUser, favIds]);
+
   useEffect(() => {
-    if (currentUser) {
-      fetchMoreProducts(); // Load the first page of products
-    }
-    if (books.length > 0 && !gotOriginalBooks) {
-      setFilteredBooks(books); // Store the original books
-      setGotOriginalBooks(true); // Ensure this runs only once
-      console.log("filteredBooks initialized:", books);
-    }
-  }, [gotOriginalBooks]);
+    if (!currentUser) return;
+
+    // // reset everything when user changes
+    // setBooks([]);
+    // setFilteredBooks([]);
+    // setGotOriginalBooks(false);
+
+    // reset on first page
+    // if (page === 1) {
+    //   setBooks([]);
+    //   setFilteredBooks([]);
+    //   setGotOriginalBooks(false);
+    // }
+
+    (async () => {
+      // 1) load favorites
+      const favs = await fetchUserFavorites(currentUser.uid);
+
+      // 2) fetch all products
+      const raw = await fetchMoreProducts();
+      console.log("[HomePage] raw products before filter:", raw);
+
+      // 3) filter out sold/bought/requested and your own posts
+      const visible = raw.filter(
+        p =>
+          p.userPosted !== currentUser.uid &&
+          !["bought", "sold", "requested"].includes(p.status)
+      );
+      console.log("[HomePage] visible after filter:", visible);
+
+      // 4) merge in favorites flag
+      const withFav = visible.map(p => ({
+        ...p,
+        favorite: favs.includes(p.id)
+      }));
+
+      // // 5) set final state
+      // setBooks(withFav);
+      // setFilteredBooks(visible);
+      // setGotOriginalBooks(true);
+
+      // OLD CODE
+      // append on pages > 1
+      // setBooks(prev =>
+      //   page === 1 ? withFav : [...prev, ...withFav]
+      // );
+
+      // NEW: only append items whose id isn't already in prev
+      setBooks(prev => {
+        if (page === 1) return withFav;
+        const newItems = withFav.filter(item =>
+          !prev.some(b => b.id === item.id)
+        );
+        return [...prev, ...newItems];
+      });
+
+      // only store original on first page
+      if (page === 1) {
+        setFilteredBooks(visible);
+        setGotOriginalBooks(true);
+      }
+
+    })();
+  }, [currentUser, page]);
+
+
 
   // Handle search input WORKS NOW!!!!
   const handleSearchInput = (e) => {
@@ -496,6 +750,7 @@ const HomePage = () => {
         );
         setBooks(filtered); // Update the books state with the filtered results
       }
+      // setSearchQuery(""); // Clear search bar .. nvmd, its better without...
     }
   };
 
@@ -510,7 +765,6 @@ const HomePage = () => {
       subjects: selectedSubjects,
       conditions: selectedConditions,
       department: selectedDepartment,
-      catalogNumber: selectedCatalogNumber,
     };
 
     console.log("Wave 1");
@@ -522,15 +776,13 @@ const HomePage = () => {
 
     // Check if all filters are empty
     const noFiltersSelected =
-    (!filters.subjects || filters.subjects.length === 0) &&
-    (!filters.conditions || filters.conditions.length === 0) &&
-    !filters.department &&
-    !filters.catalogNumber;
+    !filters.subjects &&
+    !filters.conditions &&
+    !filters.department;
 
     console.log("subjects: ", filters.subjects);
     console.log("conditions: ", filters.conditions);
     console.log("department: ", filters.department);
-    console.log("catalogNumber: ", filters.catalogNumber);
     console.log("noFiltersSelected: ", noFiltersSelected);
     console.log("filteredBooks: ", filteredBooks);
     console.log("Wave 2")
@@ -541,29 +793,43 @@ const HomePage = () => {
       return;
     }
 
-    console.log("Wave 3")
-    let filtered = [...filteredBooks]
-    console.log("filtered: ", filtered);
-  
-    if (filters.subjects && filters.subjects.length > 0) {
-      filtered = filtered.filter((book) => filters.subjects.includes(book.subject));
-    }
+    // console.log("Wave 3")
+    const filtered = filteredBooks.filter(book => {
+      // subject filter (OR across subjects)
+      // console.log("wave 3.1")
+      // console.log("selectedSubjects: ", selectedSubjects)
+      // console.log("book.subject[0]: ", book.subject[0])
+      // console.log("book.subject: ", book.subject)
+      if (
+        selectedSubjects.length > 0 &&
+        !selectedSubjects.includes(book.subject.toLowerCase())
+      ) {
+        return false;
+      }
 
-    if (filters.conditions && filters.conditions.length > 0) {
-      filtered = filtered.filter((book) => filters.conditions.includes(book.condition));
-    }
-
-    if (filters.department) {
-      filtered = filtered.filter((book) =>
-        book.department?.toLowerCase() === filters.department.toLowerCase()
-      );
-    }
-
-    if (filters.catalogNumber) {
-      filtered = filtered.filter((book) =>
-        book.catalogNumber?.toLowerCase() === filters.catalogNumber.toLowerCase()
-      );
-    }
+      // console.log("wave 3.2")
+      // console.log("selectedConditions: ", selectedConditions)
+      // console.log("book.condition[0]: ", book.condition[0])
+      // console.log("book.condition: ", book.condition)
+      // condition filter (OR across conditions)
+      if (
+        selectedConditions.length > 0 &&
+        !selectedConditions.includes(book.condition.toLowerCase())
+      ) {
+        return false;
+      }
+      // console.log("wave 3.3")
+      // department filter
+      if (
+        selectedDepartment &&
+        book.department?.toLowerCase() !== selectedDepartment.toLowerCase()
+      ) {
+        return false;
+      }
+      // console.log("wave 3.success!")
+      // passed every active filter
+      return true;
+    });
   
     setBooks(filtered);
     resetFilters();
@@ -576,14 +842,47 @@ const HomePage = () => {
     setSelectedCatalogNumber(""); // Reset catalog number to an empty string
   };
 
-  const handleToggleFavorite = (bookId) => {
+  const handleToggleFavorite = async bookId => {
+
+    // figure out current value
+    const current = books.find(b => b.id === bookId)?.favorite || false
+    const nextFav = !current
+
     setBooks(prevBooks => 
       prevBooks.map(book => 
         book.id === bookId 
-          ? { ...book, favorite: !book.favorite } 
+          ? { ...book, favorite: nextFav } 
           : book
       )
     );
+
+    // 2) update your local fav‐id list
+    setFavIds(ids =>
+      nextFav ? [...ids, bookId] : ids.filter(id => id !== bookId)
+    )
+
+    // // Optional: persist to your backend
+    // await updateUserFavorite(
+    //   currentUser.uid,
+    //   bookId,
+    //   !books.find(b=>b.id===bookId).favorite
+    // );
+
+    // // update favIds so UI stays in sync
+    // setFavIds(ids => 
+    //   ids.includes(bookId)
+    //     ? ids.filter(id=>id!==bookId)
+    //     : [...ids, bookId]
+    // );
+
+    // 3) persist
+    try {
+      await updateUserFavorite(currentUser.uid, bookId, nextFav)
+    } catch (err) {
+      console.error("failed to save fav", err)
+      // optional: roll back if you want
+    }
+
   };
 
   return (
@@ -593,15 +892,17 @@ const HomePage = () => {
       searchQuery={searchQuery}
       handleSearchInput={handleSearchInput}
       handleSearchKeyDown={handleSearchKeyDown}
+      onOpenFilters={onOpen}
     />
+
     <Banner />
     <Flex direction="column" p={4}>
       {/* Filter and Sort Buttons */}
-      <Flex gap={3} mb={4} alignItems="right" justifyContent="right">
+      <Flex gap={3} mb={1} alignItems="right" justifyContent="right">
         <Button
         
           rightIcon={<FiFilter/>}
-          onClick={() => setIsSidebarOpen(true)}
+          onClick={onOpen}
           backgroundColor={'rgb(195, 195, 195)'}
         >
           Filters
@@ -625,9 +926,9 @@ const HomePage = () => {
     </Flex>
     <Flex>
     <SideSearchTab
-      isOpen={isSidebarOpen}
-      onClose={() => setIsSidebarOpen(false)}
-      onOpen={() => setIsSidebarOpen(true)}
+      isOpen={isOpen}
+      onClose={onClose}
+      onOpen={onOpen}
       selectedSubjects={selectedSubjects}
       setSelectedSubjects={setSelectedSubjects}
       selectedConditions={selectedConditions}
@@ -638,7 +939,8 @@ const HomePage = () => {
       setSelectedCatalogNumber={setSelectedCatalogNumber}
       onApplyFilters={(filters) => {
         handleApplyFilters(filters);
-        setIsSidebarOpen(false); // also close it after applying filters
+        onClose(); // Close the sidebar after applying filters
+        // setIsSidebarOpen(false); // also close it after applying filters
       }}
     />
 
@@ -659,6 +961,18 @@ const HomePage = () => {
               book={book} 
               onToggleFavorite={handleToggleFavorite} 
               currentUser={currentUser}
+              onRequestMade={(bookId) =>
+                setBooks(prevBooks => 
+                  prevBooks.map(b => 
+                    b.id === bookId 
+                      ? { ...b,
+                        status: "requested",
+                        usersRequested: [...b.usersRequested, currentUser.uid]
+                      } 
+                      : b
+                  )
+                )
+              }
             />
           )) : (
             <Flex
@@ -675,6 +989,33 @@ const HomePage = () => {
           )}
 
         </Grid>
+
+        {/* 3) Load more button */}
+        {/* {hasMore && (
+          <Box textAlign="center" my={6}>
+            <Button
+              onClick={() => setPage(p => p + 1)}
+              isLoading={!gotOriginalBooks}
+            >
+              Load more
+            </Button>
+          </Box>
+        )} */}
+        {hasMore ? (
+          <Box textAlign="center" my={6}>
+            <Button
+              onClick={() => setPage(p => p + 1)}
+              isLoading={!gotOriginalBooks}
+            >
+              Load more
+            </Button>
+          </Box>
+        ) : (
+          <Text textAlign="center" my={6} color="gray.500">
+            No more books to load.
+          </Text>
+        )}
+
         </Box>
       </Box>
     </Flex>

@@ -28,14 +28,17 @@ app.get('/api', (req, res) => {
 
 // GET: Fetch all products
 app.get('/api/products', async (req, res) => {
-    const { page = 1, limit = 10 } = req.query; // Default to page 1, 10 items per page
+    // const { page = 1, limit = 10 } = req.query; // Default to page 1, 10 items per page
+    const page  = parseInt(req.query.page , 10) || 1;
+    const limit = parseInt(req.query.limit, 10) || 10;
+    const skip  = (page - 1) * limit;
 
     try {
         const productsCollection = db.collection('products');
         const productsSnapshot = await productsCollection
             .orderBy('createdAt', 'desc') // Optional: Order by a field
-            .offset((page - 1) * limit)
-            .limit(parseInt(limit))
+            .offset(skip)
+            .limit(limit)
             .get();
         const productsList = productsSnapshot.docs.map(doc => ({
             id: doc.id,
@@ -75,11 +78,13 @@ app.get('/api/users/:userId/userProducts', async (req, res) => {
             // console.log("userRef: ", userRef);
             const userProducts = userDoc.data().userProducts || []; // Fetch the user document
             // const userProducts = await userRef.get("userProducts"); // Fetch the user document
-            console.log("userProducts: ", userProducts);
+            // console.log("userProducts: ", userProducts);
+            console.log("userProducts: (usually would be long list here)")
 
             const rawProducts = userProducts.map((item) => item.product || item);
     
-            console.log("RAWPRODUCTS: ", rawProducts);
+            console.log("RAWPRODUCTS: (usually would be long list here)")
+            // console.log("RAWPRODUCTS: ", rawProducts);
 
             // console.log("made it before userRef")
             // const userId = req.params.userId;
@@ -515,9 +520,9 @@ app.put("/api/users/:userId/profile-image", async (req, res) => {
 
 
 //gets the user's name from userID - getUserNameFromID
-app.get('api/users/:userId', async (req, res) => {
+app.get('/api/users/:userId', async (req, res) => {
     const { userId } = req.params; // Extract userId from request parameters
-    console.log("HERE DOES IT WORK???")
+    // console.log("HERE DOES IT WORK???")
     try {
         const userRef = db.collection('users').doc(userId); // Reference the user document
         const userDoc = await userRef.get(); // Fetch the document
@@ -526,9 +531,14 @@ app.get('api/users/:userId', async (req, res) => {
             return res.status(404).json({ success: false, message: 'User not found.' });
         }
 
-        const userName = userDoc.data().displayName; // Get the user's display name
-        console.log("userName WORKS???: ", userName);
-        res.status(200).json(userName); // Return the user data
+        let userName = userDoc.data().displayName; // Get the user's display name
+        // console.log("userName WORKS???: ", userName);
+        if (!userName) {
+            // get the user's email instead
+            userName = userDoc.data().email.split('@')[0]; // Use email as display name
+        }
+        // console.log("userName: ", userName);
+        res.status(200).json( { userName } ); // Return the user data
     } catch (error) {
         console.error('Error fetching user:', error);
         res.status(500).json({ success: false, message: 'Failed to fetch user.' });
@@ -607,6 +617,51 @@ app.put('/api/updateBookSoldByToOther', async (req, res) => {
 });
 
 
+// PUT /api/users/:userId/favorite --- updateUserFavorite
+app.put('/api/users/:userId/favorite', async (req, res) => {
+    console.log("updateUserFavorite --- api works! if so, then wow!")
+    const { userId } = req.params;
+    const { productId, favorite } = req.body;
+
+    const userRef = db.collection('users').doc(userId);
+    const userDoc = await userRef.get();
+    if (!userDoc.exists) return res.status(404).send({ message: 'User not found' });
+
+    // GREAT OLD CODE
+    // // update that one product in their userProducts array
+    // const updated = userDoc.data().userProducts.map(p =>
+    //     p.id === productId ? { ...p, favorite } : p
+    // );
+
+    if (favorite) {
+        await userRef.update({
+            favorites: admin.firestore.FieldValue.arrayUnion(productId)
+        });
+        } else {
+        await userRef.update({
+            favorites: admin.firestore.FieldValue.arrayRemove(productId)
+        });
+    }
+
+    // GREAT OLD CODE
+    // await userRef.update({ userProducts: updated });
+    res.send({ success: true });
+});
+
+// GET favorites list --- fetchUserFavorites
+app.get('/api/users/:userId/favorites', async (req, res) => {
+    console.log("fetchUserFavorites --- this updateUserFavorite api works! if so, then wow!")
+    const snap = await db.collection('users').doc(req.params.userId).get();
+    if (!snap.exists) return res.status(404).send({ message:'User not found' });
+    
+    // GREAT OLD CODE
+    // const ups = snap.data().userProducts || [];
+    // const favIds = ups.filter(p => p.favorite).map(p => p.id);
+    
+    // res.send(favIds);
+
+    res.send(snap.data().favorites || []);
+});
 
 
 const PORT = process.env.PORT || 5000;

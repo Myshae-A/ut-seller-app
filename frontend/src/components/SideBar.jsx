@@ -129,25 +129,7 @@ const SideSearchTab = ({
 
   return (
     <>
-      {/* Floating Filter Button */}
-      <Tooltip label="Use search filters" aria-label="Logout tooltip">
-        <IconButton 
-          icon={<FiFilter />}
-          position="fixed"
-          top="7%"
-          left="0"
-          transform="translateY(-70%)"
-          zIndex="1000"
-          bgColor="#DD8533"
-          color="white"
-          borderLeftRadius="none"
-          borderRightRadius="50"
-          onClick={onOpen}
-          aria-label="Open Filters"
-          size="md"
-          px={8}
-        />
-      </Tooltip>
+      
 
       {/* Drawer Sidebar */}
       <Drawer 
@@ -210,7 +192,7 @@ const SideSearchTab = ({
             </VStack>
 
             {/* Catalog Number Section */}
-            <VStack align="stretch" mb={4}>
+            {/* <VStack align="stretch" mb={4}>
               <Text fontSize="lg">Catalog Number</Text>
               <Select
                 backgroundColor={'rgb(195, 195, 195)'}
@@ -218,13 +200,13 @@ const SideSearchTab = ({
                 onChange={(e) => setSelectedCatalogNumber(e.target.value)}
               >
                 <option value="">Select a Catalog Number</option> {/* Placeholder option */}
-                {catalogNumber.map((number) => (
+                {/* {catalogNumber.map((number) => (
                   <option key={number} value={number}>
                     {number}
                   </option>
-                ))}
-              </Select>
-            </VStack>
+                ))} */}
+              {/* </Select>
+            </VStack> */}
 
             {/* Condition Section */}
             <VStack align="stretch">
@@ -247,6 +229,7 @@ const SideSearchTab = ({
             </VStack>
 
             {/* Apply Filters Button */}
+            <Tooltip label="To reset, select nothing">
             <Button 
               bgColor={"rgb(221, 147, 51)"} 
               mt={4} 
@@ -256,6 +239,7 @@ const SideSearchTab = ({
             >
               Apply Filters
             </Button>
+            </Tooltip>
           </DrawerBody>
         </DrawerContent>
       </Drawer>

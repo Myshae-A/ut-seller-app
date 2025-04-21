@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 // import american from '../images/american.jpg';
 // import linear from '../images/linear.jpg';
 import Navbar from '../components/Navbar'
@@ -45,23 +45,34 @@ import {
   fetchUserProducts,
   getUserNameFromID,
   updateBookSoldByToOther,
+  updateUserFavorite,
+  fetchUserFavorites,
 } from '../services/api'; // 
 import { uploadProfileImage } from "../services/uploadProfileImage";
 import { updateUserProfile } from "../services/api";
+import confetti from 'canvas-confetti';
 
 // individual book cards 
 //need to change modal to be differnt from home page modal. !!!
-const BookCard = ({ book, onToggleFavorite, postedNotifications,
-  handleSellingTo, handleFinalizeSell, selectedUserId, setSelectedUserId  }) => {
+const BookCard = ({
+  book,
+  onToggleFavorite,
+  postedNotifications,
+  handleSellingTo,
+  handleFinalizeSell,
+  selectedUserId,
+  setSelectedUserId,
+  globalNameMap  }) => {
   const { isOpen, onOpen, onClose } = useDisclosure();
   const [showReportOverlay, setShowReportOverlay] = useState(false);
 
   const tags = [
     ...(book.subject ? [book.subject] : []),
     ...(book.condition ? [book.condition] : []),
+    ...(book.department ? [book.department] : []),
   ];
-  
-  const maxTotalLength = 23; // Adjust this number to fit your layout
+  // Need a smaller number than 23 as it previously was
+  const maxTotalLength = 12; 
   let totalLength = 0;
   const visibleTags = [];
   const hiddenTags = [];
@@ -80,12 +91,54 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
   const { hasCopied, onCopy } = useClipboard(shareUrl);
   const toast = useToast();
 
+
+
   // const userRequestedNames = useMemo(() => {
   //   return book.usersRequested.map((id) => ({
   //     id,
   //     name: getUserNameFromID(id) || "blank",
   //   }));
   // }, [book.usersRequested]);
+
+
+  // const [requesterNames, setRequesterNames] = useState([])
+  
+
+  // useEffect(() => {
+  //   if (!book.usersRequested?.length) return
+  
+  //   setTimeout(() => {
+  //     async function loadNames() {
+  //       // map each UID → promise that resolves to a displayName
+  //       const names = await Promise.all(
+  //         book.usersRequested.map((uid) => getUserNameFromID(uid))
+  //       )
+  //       setRequesterNames(names)
+  //     }
+  //     loadNames()
+  //   }, 1000)
+    
+  // }, [book.usersRequested])
+
+  // const fetchedRef = useRef(false)
+  // useEffect(() => {
+  //   if (!isOpen) return                 // do nothing until user opens the modal
+  //   if (fetchedRef.current) return      // already fetched once
+  //   if (!book.usersRequested?.length) return
+
+  //   fetchedRef.current = true
+
+  //   async () => {
+  //     try {
+  //       const names = await Promise.all(
+  //         book.usersRequested.map((uid) => getUserNameFromID(uid))
+  //       )
+  //       setRequesterNames(names)
+  //     } catch (err) {
+  //       console.error("Failed to load names", err)
+  //     }
+  //   }
+  // }, [isOpen, book.usersRequested])
 
   return (
     <>
@@ -118,31 +171,75 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
           {/* Overlay for Sold Products */}
           {book.status === "sold" && (
             <Box
-              position="absolute"
-              top={0}
-              left={0}
-              width="100%"
-              height="100%"
-              bg="rgba(0, 0, 0, 0.5)" // Transparent gray background
-              display="flex"
-              alignItems="center"
-              justifyContent="center"
-              borderRadius={15}
-              zIndex={1} // Ensure it appears above the image
+            position="absolute"
+            top={0}
+            left={0}
+            width="100%"
+            height="100%"
+            bg="rgba(0, 0, 0, 0.5)" // Transparent gray background
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius={15}
+            zIndex={1}                     // above the image
+          >
+            {/* solid pill behind the text */}
+            <Box
+              bg="orange.600"
+              px={20}
+              borderRadius="md"
             >
-              <Text
-                fontSize="2xl"
-                fontWeight="bold"
-                color="orange.400"
-                textAlign="center"
-              >
-                SOLD
-              </Text>
+            <Text
+              fontSize="xl"
+              fontWeight="bold"
+              color="white"             // darker blue text
+              textAlign="center"
+              lineHeight=".1"
+              marginTop={3}
+            >
+              SOLD
+            </Text>
             </Box>
+          </Box>
           )}
 
           {/* Overlay for Sold Products */}
           {book.status === "bought" && (
+            <Box
+            position="absolute"
+            top={0}
+            left={0}
+            width="100%"
+            height="100%"
+            bg="rgba(0, 0, 0, 0.5)" // Transparent gray background
+            display="flex"
+            alignItems="center"
+            justifyContent="center"
+            borderRadius={15}
+            zIndex={1}                     // above the image
+          >
+            {/* solid pill behind the text */}
+            <Box
+              bg="green.600"
+              px={10}
+              borderRadius="md"
+            >
+            <Text
+              fontSize="xl"
+              fontWeight="bold"
+              color="white"             // darker blue text
+              textAlign="center"
+              lineHeight=".1"
+              marginTop={3}
+            >
+              BOUGHT
+            </Text>
+            </Box>
+          </Box>
+          )}
+
+          {/* Overlay for Requested Products */}
+          {book.status === "requested" && (
             <Box
               position="absolute"
               top={0}
@@ -154,16 +251,25 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
               alignItems="center"
               justifyContent="center"
               borderRadius={15}
-              zIndex={1} // Ensure it appears above the image
+              zIndex={1}                     // above the image
             >
-              <Text
-                fontSize="2xl"
-                fontWeight="bold"
-                color="green.400"
-                textAlign="center"
+              {/* solid pill behind the text */}
+              <Box
+                bg="blue.600"
+                px={10}
+                borderRadius="md"
               >
-                BOUGHT
+              <Text
+                fontSize="xl"
+                fontWeight="bold"
+                color="white"             // darker blue text
+                textAlign="center"
+                lineHeight=".1"
+                marginTop={3}
+              >
+                REQUESTED
               </Text>
+              </Box>
             </Box>
           )}
 
@@ -228,20 +334,31 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
             {book.name}
           </Text>
           
-          <Flex gap={2} mb={2} flexWrap="wrap">
-            {visibleTags.map((tag, idx) => (
-              <Badge
-                key={idx}
-                bgColor="rgba(221, 147, 51, 0.47)"
-                borderRadius={30}
-                p={1}
-                px={2}
-                fontSize="x-small"
-                fontWeight="semibold"
-              >
-                {tag}
-              </Badge>
-            ))}
+          <Flex gap={1} mb={2} flexWrap="wrap">
+            {visibleTags.map((tag, idx) => {
+              let bgColor = "gray.300";               // fallback
+              if (tag === book.subject) {
+                bgColor = "rgba(200,226,240,1)";
+              } else if (tag === book.condition) {
+                bgColor = "rgba(221,147,51,0.47)";
+              } else if (tag === book.department) {
+                bgColor = "rgba(231,185,216,1)";
+              }
+              return (
+                <Badge
+                  key={idx}
+                  bgColor={bgColor}
+                  borderRadius="30px"
+                  px={2}
+                  py={1}
+                  fontSize="x-small"
+                  fontWeight="semibold"
+                  whiteSpace="nowrap"
+                >
+                  {tag}
+                </Badge>
+              );
+            })}
             {hiddenTags.length > 0 && (
               <Badge
                 bgColor="gray.300"
@@ -280,6 +397,9 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
               borderRadius="md"
               pb={4}
               position="relative"
+              display="flex"
+              alignItems="center"
+              justifyContent="center"
             >
               <Image 
                   src={book.image}
@@ -314,19 +434,18 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
 
                 <Box>
                   <Flex gap={2} mb={2} flexWrap="wrap">
-                    {book.categories && book.categories.map((cat, idx) => (
+                  {book.subject && (
                       <Badge 
-                        key={idx} 
-                        bgColor="rgba(221, 147, 51, 0.47)"
+                        bgColor="rgba(200,226,240,1)"
                         borderRadius={30}
                         p={1}
                         px={2}
                         fontSize="x-small"
                         fontWeight="semibold"
                       >
-                        {cat}
+                        {book.subject}
                       </Badge>
-                    ))}
+                    )}
                     {book.condition && (
                       <Badge 
                         bgColor="rgba(221, 147, 51, 0.47)"
@@ -337,6 +456,18 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                         fontWeight="semibold"
                       >
                         {book.condition}
+                      </Badge>
+                    )}
+                    {book.department && (
+                      <Badge 
+                        bgColor="rgba(231,185,216,1)"
+                        borderRadius={30}
+                        p={1}
+                        px={2}
+                        fontSize="x-small"
+                        fontWeight="semibold"
+                      >
+                        {book.department}
                       </Badge>
                     )}
                   </Flex>
@@ -355,7 +486,13 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
 
                   {/* Confirm Sell Button */}
                   {book.status === 'posted' && book.usersRequested && book.usersRequested.length > 0 && (
-                    <Box mt={4}>
+                    <Box
+                      mt={4}
+                      onClick={(e) => {
+                        e.stopPropagation()
+                        console.log("HERE CLICKing sell")
+                      }}
+                    >
                       <Text fontWeight="bold" fontSize="sm" mb={2}>
                         Confirm Sell?
                       </Text>
@@ -366,9 +503,9 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                         borderRadius={10}
                         mb={2}
                       >
-                        {book.usersRequested.map((displayName, idx) => (
-                          <option key={idx} value={displayName}>
-                            {displayName}
+                        {book.usersRequested.map((uid) => (
+                          <option key={uid} value={uid}>
+                            {globalNameMap[uid] || "Loading..."}
                           </option>
                         ))}
                       </Select>
@@ -569,7 +706,19 @@ const BookCard = ({ book, onToggleFavorite, postedNotifications,
                 </Box>
                     
                 <Text  mb={2}>{book.catalogue}</Text>
-                <Text  mb={2}>{book.description}</Text>
+                <Text mb={2}>
+                  Meetup Date:{' '}
+                  {book.meetupDateTime
+                    ? new Date(book.meetupDateTime).toLocaleString()
+                    : 'TBD'}
+                </Text>
+                <Text mb={2}>
+                  Location: {book.meetupLocation || 'TBD'}
+                </Text>
+                <Text mb={2}>
+                  Contact: {book.contactInfo || 'TBD'}
+                </Text>
+                <Text  mb={2}>Description: {book.description}</Text>
 
               </Flex>
             </ModalBody>
@@ -596,14 +745,160 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
     const [postedNotifications, setPostedNotifications] = useState({});
     const [selectedUserId, setSelectedUserId] = useState(null);
     const [profileImage, setProfileImage] = useState(""); // currentUser?.profileImage || 
-
+    const [globalNameMap, setGlobalNameMap] = useState({})
 
     const navigate = useNavigate();
     const { currentUser, authBooksRequested } = useAuth();
     const toast = useToast();
+    const [favIds, setFavIds] = useState([])
     // const [triggerName, setTriggerName] = useState();
 
+
+
+      // load saved books whenever the user changes
+  // useEffect(() => {
+  //   if (!currentUser) return;
+  //   (async () => {
+  //     const favIds = await fetchUserFavorites(currentUser.uid);
+  //     const proms = favIds.map(id =>
+  //       fetchProductById(id).then(res => res.product || res)
+  //     );
+  //     const prods = await Promise.all(proms);
+  //     setSavedBooks(prods);
+  //   })();
+  // }, [currentUser]);
+
+
+    // LATELY REMOVED
+    //  // 1) load favorites‐ids on login
+    // useEffect(() => {
+    //   if (!currentUser) return
+    //   fetchUserFavorites(currentUser.uid).then(setFavIds)
+    // }, [currentUser])
+
+    // 2) whenever favIds change, fetch each product & mark favorite=true
+    useEffect(() => {
+      if (favIds.length === 0) {
+        setSavedBooks([])
+        return
+      }
+      (async () => {
+        const proms = favIds.map(id =>
+          fetchProductById(id).then(r => r.product || r)
+        )
+        const prods = await Promise.all(proms)
+        // stamp each one
+        setSavedBooks(
+          prods.map(p => ({ ...p, favorite: favIds.includes(p.id) }))
+        )
+      })()
+    }, [favIds])
+
+    // 3) tweak your toggle handler to update favIds
+    const handleToggleFavorite = async bookId => {
+      const nextFav = !favIds.includes(bookId)
+      // optimistic UI
+      setFavIds(ids =>
+        nextFav ? [...ids, bookId] : ids.filter(id => id !== bookId)
+      )
+      try {
+        await updateUserFavorite(currentUser.uid, bookId, nextFav)
+      } catch (err) {
+        console.error(err)
+      }
+    }
+
+
+    // REPLACEMENT CODE:
+    useEffect(() => {
+      if (!currentUser) return
     
+      (async () => {
+        try {
+          // 1) load both favorites & user’s products in parallel
+          const [ids, products] = await Promise.all([
+            fetchUserFavorites(currentUser.uid),
+            fetchUserProducts(currentUser.uid),
+          ])
+    
+          // 2) store raw favIds for Saved tab & toggle logic
+          setFavIds(ids)
+    
+          // 3) “stamp” every product with favorite=true/false
+          const stamped = products.map(book => ({
+            ...book,
+            favorite: ids.includes(book.id),
+          }))
+    
+          // 4) populate each per‑tab list
+          setBooks(stamped)
+          setBoughtBooks(stamped.filter(b => b.status === 'bought'))
+          setSoldBooks(  stamped.filter(b => b.status === 'sold'))
+          setPostedBooks(stamped.filter(b => b.status === 'posted'))
+          setRequestedBooks(
+            stamped.filter(b => b.status === 'requested')
+          )
+          // (savedBooks is driven by favIds → fetchProductById effect)
+        } catch (err) {
+          console.error('Error loading account data', err)
+        }
+      })()
+    }, [currentUser])
+
+    useEffect(() => {
+      const tag = list => list.map(b => ({ ...b, favorite: favIds.includes(b.id) }))
+      setBooks(prev => tag(prev))
+      setBoughtBooks(prev => tag(prev))
+      setSoldBooks(prev => tag(prev))
+      setPostedBooks(prev => tag(prev))
+      setRequestedBooks(prev => tag(prev))
+      // savedBooks is already driven by favIds→fetchProductById
+    }, [favIds])
+
+
+    // LATELY REMOVED
+    // 3bis) whenever favIds change, re‐tag every tab’s books
+    // useEffect(() => {
+    //   const tag = list => list.map(b => ({ ...b, favorite: favIds.includes(b.id) }));
+    //   setBooks(prev => tag(prev));
+    //   setBoughtBooks(prev => tag(prev));
+    //   setSoldBooks(prev => tag(prev));
+    //   setPostedBooks(prev => tag(prev));
+    //   setRequestedBooks(prev => tag(prev));
+    //   // savedBooks is already tagged in your other effect
+    // }, [favIds]);
+
+
+
+    // OLD FAVORITE CODE:
+    // // whenever `books` changes, rebuild savedBooks
+    // useEffect(() => {
+    //   setSavedBooks(books.filter(b => b.favorite));
+    // }, [books]);
+
+    // // Function to toggle favorite status
+    // const handleToggleFavorite = async bookId => {
+
+    //   const current = books.find(b => b.id === bookId)?.favorite || false
+    //   const nextFav = !current
+
+    //   setBooks((prevBooks) =>
+    //     prevBooks.map((book) =>
+    //       book.id === bookId
+    //         ? { ...book, favorite: nextFav }
+    //         : book
+    //     )
+    //   );
+
+    //   // Optional: persist to your backend
+    //   // await updateUserFavorite(currentUser.uid, bookId, !books.find(b=>b.id===bookId).favorite);
+    //   try {
+    //     await updateUserFavorite(currentUser.uid, bookId, nextFav)
+    //   } catch (err) {
+    //     console.error("failed to save fav", err)
+    //   }
+    // };
+
     // useEffect(() => {
     //   if (currentUser) {
     //     console.log("Current User updated:", currentUser.displayName);
@@ -657,75 +952,89 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
       }
     };
 
-    // Fetch books from the backend when the component mounts
-    useEffect(() => {
+    // LATEST OLD CODE
+    // // Fetch books from the backend when the component mounts
+    // useEffect(() => {
 
-      // console.log("Current user:", currentUser);
+    //   // console.log("Current user:", currentUser);
       
-      const fetchBooks = async () => {
-        try {
+    //   const fetchBooks = async () => {
+    //     try {
 
-          if (!currentUser) {
-            console.error("User is not defined");
-            return;
-          }
+    //       if (!currentUser) {
+    //         console.error("User is not defined");
+    //         return;
+    //       }
 
-          const data = await fetchUserProducts(currentUser.uid); // Adjust the URL as needed
+    //       const data = await fetchUserProducts(currentUser.uid); // Adjust the URL as needed
           
-          const list = [];
-          for (let i = 0; i < data.length; i++) {
-            list.push(data[i]); // Add each requested book to the array
-          }
-          setBooks(list); // Set the fetched books to state
+    //       // ← stamp in favorite flag
+    //       const stamped = data.map(b => ({
+    //         ...b,
+    //         favorite: favIds.includes(b.id)
+    //       }));
 
-          const requestList = [];
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].status === 'requested') {
-              requestList.push(data[i]);
-            }
-          }
-          setRequestedBooks(requestList);
+    //       // set each tab’s list from the stamped array
+    //       setBooks(stamped);
+    //       setRequestedBooks(stamped.filter(b => b.status === 'requested'));
+    //       setPostedBooks   (stamped.filter(b => b.status === 'posted'));
+    //       setBoughtBooks   (stamped.filter(b => b.status === 'bought'));
+    //       setSoldBooks     (stamped.filter(b => b.status === 'sold'));
 
-          const postedList = [];
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].status === 'posted') {
-              postedList.push(data[i]);
-            }
-          }
-          setPostedBooks(postedList);
+    //       // const list = [];
+    //       // for (let i = 0; i < data.length; i++) {
+    //       //   list.push(data[i]); // Add each requested book to the array
+    //       // }
+    //       // setBooks(list); // Set the fetched books to state
 
-          const boughtList = [];
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].status === 'bought') {
-              boughtList.push(data[i]);
-            }
-          }
-          setBoughtBooks(boughtList);
+    //       // const requestList = [];
+    //       // for (let i = 0; i < data.length; i++) {
+    //       //   if (data[i].status === 'requested') {
+    //       //     requestList.push(data[i]);
+    //       //   }
+    //       // }
+    //       // setRequestedBooks(requestList);
 
-          const soldList = [];
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].status === 'sold') {
-              soldList.push(data[i]);
-            }
-          }
-          setSoldBooks(soldList);
+    //       // const postedList = [];
+    //       // for (let i = 0; i < data.length; i++) {
+    //       //   if (data[i].status === 'posted') {
+    //       //     postedList.push(data[i]);
+    //       //   }
+    //       // }
+    //       // setPostedBooks(postedList);
 
-          const savedList = [];
-          for (let i = 0; i < data.length; i++) {
-            if (data[i].status === 'saved') {
-              savedList.push(data[i]);
-            }
-          }
-          setSavedBooks(savedList);
+    //       // const boughtList = [];
+    //       // for (let i = 0; i < data.length; i++) {
+    //       //   if (data[i].status === 'bought') {
+    //       //     boughtList.push(data[i]);
+    //       //   }
+    //       // }
+    //       // setBoughtBooks(boughtList);
 
-        } catch (error) {
-          console.error('Error fetching books:', error);
-        }
-      };
-      fetchBooks();
+    //       // const soldList = [];
+    //       // for (let i = 0; i < data.length; i++) {
+    //       //   if (data[i].status === 'sold') {
+    //       //     soldList.push(data[i]);
+    //       //   }
+    //       // }
+    //       // setSoldBooks(soldList);
+
+    //       // const savedList = [];
+    //       // for (let i = 0; i < data.length; i++) {
+    //       //   if (data[i].status === 'saved') {
+    //       //     savedList.push(data[i]);
+    //       //   }
+    //       // }
+    //       // setSavedBooks(savedList);
+
+    //     } catch (error) {
+    //       console.error('Error fetching books:', error);
+    //     }
+    //   };
+    //   fetchBooks();
       
 
-    }, []);
+    // }, []);
 
     
   //   const generateRequestedBooks = async () => {
@@ -750,17 +1059,6 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
         checkPostedNotifications(); // Run only when postedBooks is updated
       }
     }, [postedBooks]);
-
-    // Function to toggle favorite status
-    const handleToggleFavorite = (bookId) => {
-      setBooks((prevBooks) =>
-        prevBooks.map((book) =>
-          book.id === bookId
-            ? { ...book, favorite: !book.favorite, status: !book.favorite ? 'saved' : 'selling' }
-            : book
-        )
-      );
-    };
 
   //   useEffect(() => { // ensures the products still load after
   //     const loadBooks = async () => {
@@ -847,11 +1145,54 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
           prevPostedBooks.filter((book) => book.id !== bookId) // Remove the book from postedBooks
         );
 
+        // fire confetti!
+        const count = 200;
+        const defaults = { origin: { y: 0.7 } };
+        function fire(particleRatio, opts) {
+          confetti({
+            ...defaults,
+            ...opts,
+            zIndex: 9999,
+            particleCount: Math.floor(count * particleRatio)
+          });
+        }
+        fire(0.25, { spread: 26, startVelocity: 55 });
+        fire(0.2,  { spread: 60 });
+        fire(0.35, { spread: 100, decay: 0.91, scalar: 0.8 });
+        fire(0.1,  { spread: 120, startVelocity: 25, decay: 0.92, scalar: 1.2 });
+        fire(0.1,  { spread: 120, startVelocity: 45 });
+
+        // optional: give user a toast
+        // toast({
+        //   title: "Success!",
+        //   description: "Sold! 🎉",
+        //   status: "success",
+        //   duration: 3000,
+        //   isClosable: true,
+        //   position: "top",
+        // });
+
         console.log("Sale confirmed successfully!");
       } catch (error) {
         console.error("Error confirming sale:", error);
       }
     };
+
+
+
+    useEffect(() => {
+      if (!postedBooks.length) return
+      (async () => {
+        // flatten all UIDs
+        const allUids = Array.from(new Set(
+          postedBooks.flatMap(b => b.usersRequested || []
+        )))
+
+        const names = await Promise.all(allUids.map(uid => getUserNameFromID(uid)))
+        const map = Object.fromEntries(allUids.map((uid, i) => [uid, names[i]]))
+        setGlobalNameMap(map)
+      })()
+    }, [postedBooks])
 
 
     // // Function to handle logout
@@ -927,6 +1268,7 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                               handleFinalizeSell={finalizeSell}
                               selectedUserId={selectedUserId}
                               setSelectedUserId={setSelectedUserId}
+                              globalNameMap={globalNameMap}
                             />
                             ))
                             :
@@ -949,6 +1291,7 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                                 handleFinalizeSell={finalizeSell}
                                 selectedUserId={selectedUserId}
                                 setSelectedUserId={setSelectedUserId}
+                                globalNameMap={globalNameMap}
                               />
                             ))
                             :
@@ -971,6 +1314,7 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                                   handleFinalizeSell={finalizeSell}
                                   selectedUserId={selectedUserId}
                                   setSelectedUserId={setSelectedUserId}
+                                  globalNameMap={globalNameMap}
                                 />
                             ))
                             :
@@ -993,6 +1337,7 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                                   handleFinalizeSell={finalizeSell}
                                   selectedUserId={selectedUserId}
                                   setSelectedUserId={setSelectedUserId}
+                                  globalNameMap={globalNameMap}
                                 />
                             ))
                             :
@@ -1015,6 +1360,7 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                                 handleFinalizeSell={finalizeSell}
                                 selectedUserId={selectedUserId}
                                 setSelectedUserId={setSelectedUserId}
+                                globalNameMap={globalNameMap}
                               />
                             ))
                             :
@@ -1037,10 +1383,11 @@ const AccountPage = () => { // STOPPED HERE, trying to login login as YOURSELF
                                 handleFinalizeSell={finalizeSell}
                                 selectedUserId={selectedUserId}
                                 setSelectedUserId={setSelectedUserId}
+                                globalNameMap={globalNameMap}
                               />
                             ))
                             :
-                            <Text textAlign="center" color="gray.500" width="200%">No saved items to display</Text>
+                            <Text textAlign="center" color="gray.500" width="200%">No saved items to display.</Text>
                             }
                         </SimpleGrid>
                         </TabPanel>

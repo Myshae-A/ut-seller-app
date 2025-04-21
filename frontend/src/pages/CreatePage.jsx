@@ -17,6 +17,7 @@ import { Box,
   VStack,
   HStack,
   useToast,
+  Tooltip,
 } from '@chakra-ui/react';
 import { CloseIcon, AddIcon } from '@chakra-ui/icons';
 import React, { useState } from 'react';
@@ -42,7 +43,10 @@ const CreatePage = () => {
     condition: "",
     catalogNumber: "",
     description: "",
-    status: ""
+    status: "",
+    meetupLocation: "",
+    meetupDateTime: "",
+    contactInfo: "",
   });
   
   // State for handling multiple images
@@ -165,6 +169,9 @@ const CreatePage = () => {
         usersRequested: [],
         status: "posted",
         soldTo: "",
+        meetupLocation: newProduct.meetupLocation,
+        meetupDateTime: newProduct.meetupDateTime,
+        contactInfo: newProduct.contactInfo
       };
       
       // Add the product to the global database of all products
@@ -200,6 +207,9 @@ const CreatePage = () => {
           description: "",
           status: "",
           soldTo: "",
+          meetupLocation: "",
+          meetupDateTime: "",
+          contactInfo: "",
       });
       setImageFiles(Array(4).fill(null));
       setImageUrls(Array(4).fill(""));
@@ -415,22 +425,59 @@ const CreatePage = () => {
                 </Select>
                 
                 <Select 
-                  name="catalogNumber" 
-                  value={newProduct.catalogNumber}
+                  name="meetupLocation" 
+                  value={newProduct.meetupLocation}
                   onChange={handleInputChange}
-                  placeholder="Catalog Number" 
+                  placeholder="Meetup Spot" 
                   bg={'gray.300'}
                   _hover={{ bg: 'gray.400' }}
                   _focus={{ bg: 'gray.400' }}
                   variant="filled" 
                   size="md"
                 >
-                  <option value="ISBN">ISBN</option>
-                  <option value="UPC">UPC</option>
-                  <option value="SKU">SKU</option>
+                  <option value="Library">Library</option>
+                  <option value="Campus Mall">Campus Mall</option>
+                  <option value="Coffee Shop">Coffee Shop</option>
+                  <option value="Student Union">Student Union</option>
+                  {/* add more as needed */}
                 </Select>
               </Flex>
               
+                <FormControl>
+                <FormLabel
+                  // centered to middle
+                  textAlign="center"
+                >Meetup Date & Time</FormLabel>
+                <Input
+                  name="meetupDateTime"
+                  type="datetime-local"
+                  placeholder="Meetup Date & Time"
+                  _placeholder={{ color: "gray.500", fontStyle: "italic" }}
+                  value={newProduct.meetupDateTime}
+                  onChange={handleInputChange}
+                  variant="filled"
+                  bg="gray.300"
+                  _hover={{ bg: "gray.400" }}
+                  _focus={{ bg: "gray.400" }}
+                />
+
+              </FormControl>
+              
+
+              {/* 3) Contact info input */}
+              <FormControl>
+                <Input
+                  name="contactInfo"
+                  value={newProduct.contactInfo}
+                  onChange={handleInputChange}
+                  placeholder="Contact info: (email and/or phone)"
+                  variant="filled"
+                  bg="gray.300"
+                  _hover={{ bg: 'gray.400' }}
+                  _focus={{ bg: 'gray.400' }}
+                />
+              </FormControl>
+
               <FormControl>
                 <Textarea 
                   name="description"

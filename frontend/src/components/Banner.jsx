@@ -11,9 +11,16 @@ const Banner = () => {
            top="40%"
            left="50%"
            transform="translate(-50%, -50%)"
-           fontSize="9xl"
            fontFamily="NanumMyeongjo"
            color="black"
+           // fontSize="9xl"
+           fontWeight="light"
+           fontSize={{
+            base: "4xl",   // mobile
+            sm:   "6xl",   // small tablets
+            md:   "8xl",   // larger tablets
+            lg:   "9xl",   // desktop
+          }}
         >
           MISO
         </Text>
@@ -23,9 +30,17 @@ const Banner = () => {
             top="70%"
             left="50%"
             transform="translate(-50%, -50%)"
-            fontSize="4xl"
-            color="black">
-            Tasty Deals on Textbooks!
+            // fontSize="4xl"
+            fontSize={{
+              base: "lg",    // phones
+              sm:   "xl",    // small tablets
+              md:   "2xl",   // larger tablets
+              lg:   "3xl"    // desktop
+            }}
+            color="black"
+            whiteSpace="pre"
+            >
+            Your Campus.  Your Books.  Your Price.
         </Text>
     </Box>
   );

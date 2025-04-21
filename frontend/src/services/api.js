@@ -3,14 +3,29 @@ const API_URL = 'https://ut-seller-app-backend.vercel.app/api';
 
 // const API_URL = 'http://localhost:5000/api'; // Update with your backend URL, for testing locally
 
-export const fetchProducts = async () => {
+// import axios from 'axios';
+
+export const fetchProducts = async (page = 1, limit = 10) => {
+    
+    // axios.get('/api/products', {
+    //     params: { page, limit }
+    //   })
+    //   .then(res => res.data);
+    // const url = `${API_URL}/products?page=${page}&limit=${limit}`;
+    // url.searchParams.set('page',  page);
+    // url.searchParams.set('limit', limit);
+    
     try {
-        const response = await fetch(`${API_URL}/products`, {
+        const response = await fetch(`${API_URL}/products?page=${page}&limit=${limit}`, {
             method: 'GET',
             headers: {
                 'Content-Type': 'application/json',
             },
         });
+        if (!response.ok) {
+            throw new Error(`Failed to fetch products: ${response.status}`);
+        }
+
         const data = await response.json();
         return data;
     } catch (error) {
@@ -287,7 +302,7 @@ export const getUserRequestedBooksIds = async (userId) => {
 
 
 export const getUserNameFromID = async (userId) => {
-    console.log("USER ID [getUserNameFromID]: ", userId);
+    // console.log("USER ID [getUserNameFromID]: ", userId);
     // if (!userId) {
     //     console.error("User ID is null or undefined.");
     //     return null;
@@ -324,6 +339,21 @@ export const updateBookSoldByToOther = async (userId, productId, soldToUserId) =
         throw error;
     }
 }
+
+export const updateUserFavorite = async (userId, productId, favorite) => {
+    const res = await fetch(`${API_URL}/users/${userId}/favorite`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ productId, favorite })
+    });
+    return res.json();
+};
+
+export const fetchUserFavorites = async (userId) => {
+    const res = await fetch(`${API_URL}/users/${userId}/favorites`);
+    if (!res.ok) throw new Error('Failed to load favorites');
+    return res.json();            // returns [ 'prodId1', 'prodId2', … ]
+};
 
 
 // Other API calls...
